@@ -21,3 +21,9 @@ class BoletaRepoImpl(private val persistencia: PersistenciaDatos) : BoletaReposi
         return keys.mapNotNull { persistencia.read(it) }
     }
 }
+
+private fun Boleta.toBytes(): ByteArray {
+    // Funcion de extension privada, solo para esta clase
+    //
+    TODO("Not yet implemented")
+}

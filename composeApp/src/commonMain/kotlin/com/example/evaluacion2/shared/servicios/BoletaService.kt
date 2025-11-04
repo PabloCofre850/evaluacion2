@@ -5,6 +5,7 @@ import com.example.evaluacion2.shared.persistencia.ClienteRepositorio
 import com.example.evaluacion2.shared.persistencia.LecturaRepositorio
 import com.example.evaluacion2.shared.persistencia.MedidorRepositorio
 import com.example.evaluacion2.shared.dominio.Boleta
+import com.example.evaluacion2.shared.dominio.EstadoBoleta
 
 class BoletaService (
     //les puse private porque aparece asi en el UML//
@@ -19,7 +20,7 @@ class BoletaService (
 
         val consumo = calcularKwhClienteMes(rutCliente, anio, mes)
         val tarifa = tarifas.tarifaPara(cliente)
-        val detalle = tarifa.detalleParaConsumo(consumo)
+        val detalle = tarifa.calcular(consumo)
 
         val boleta = Boleta(
             idCliente = rutCliente,
@@ -27,10 +28,10 @@ class BoletaService (
             mes = mes,
             kwhTotal = consumo,
             detalle = detalle,
-            estado = Boleta.EstadoBoleta.EMITIDA
+            estado = EstadoBoleta.EMITIDA
         )
 
-        boleta.guardar(boletas)
+        boletas.guardar(boleta)
         return boleta
     }
     fun calcularKwhClienteMes(rutCliente: String, anio: Int, mes: Int): Double{

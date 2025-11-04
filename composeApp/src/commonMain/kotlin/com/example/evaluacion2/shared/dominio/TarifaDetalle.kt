@@ -1,9 +1,11 @@
 package com.example.evaluacion2.shared.dominio
 
-class TarifaDetalle (
-    var knw: Double,
-    var subtotal: Double,
-    var cargos: Double,
-    var iva: Double,
-    var total: Double
-){}
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class TarifaDetalle(
+    val nombre: String,      // Tipo de tarifa
+    val precioKwh: Double,   // Precio por kWh
+    val consumo: Double,     // kWh consumidos
+    val total: Double        // Monto total a pagar
+)

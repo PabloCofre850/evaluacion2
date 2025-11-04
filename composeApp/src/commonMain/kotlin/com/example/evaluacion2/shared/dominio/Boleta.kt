@@ -1,16 +1,18 @@
 package com.example.evaluacion2.shared.dominio
 
-import com.example.evaluacion2.shared.dominio.TarifaDetalle
+// Importamos esto para poder convertir la clase a JSON fácilmente
 
-class Boleta (
+import kotlinx.serialization.Serializable
+
+// La clase Boleta representa una boleta de consumo eléctrico emitida a un cliente.
+// Es una 'data class' porque solo guarda información (no tiene lógica).
+
+@Serializable // 👈 Necesario para guardar y/o leer como JSON
+data class Boleta(
     val idCliente: String,
-    var anio: Int,
-    var mes: Int,
-    var kwhTotal:Double,
-    var detalle: TarifaDetalle,
-    var estado: EstadoBoleta
-){
-    fun toPdfTable(): PdfTable{
-        TODO("plox")
-    }
-}
+    val anio: Int,
+    val mes: Int,
+    val kwhTotal: Double,
+    val detalle: TarifaDetalle,
+    val estado: EstadoBoleta
+)

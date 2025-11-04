@@ -1,12 +1,14 @@
 package com.example.evaluacion2.shared.persistencia
 
+import com.example.evaluacion2.shared.dominio.Boleta
+
 class PersistenciaDatos(private val driver: StorageDriver) {
 
     fun save(key: String, bytes: ByteArray): Boolean {
         return driver.put(key, bytes)
     }
 
-    fun read(key: String): ByteArray? {
+    fun read(key: String): Boleta? {
         return driver.get(key)
     }
 
