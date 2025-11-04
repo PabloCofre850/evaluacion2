@@ -1,4 +1,10 @@
 package com.example.evaluacion2.shared.dominio
 
-class Tarifa {
+interface Tarifa {
+    fun nombre (): String{
+        TODO()
+    }
+    fun calcular(kwh: Double): TarifaDetalle{
+        TODO()
+    }
 }
