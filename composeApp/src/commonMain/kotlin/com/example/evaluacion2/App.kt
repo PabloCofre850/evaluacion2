@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.example.evaluacion2.shared.vistas.BoletaTestScreen
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -26,7 +25,6 @@ fun App() {
     @Composable
     fun App() {
         MaterialTheme {
-           BoletaTestScreen()
         }
     }
 
