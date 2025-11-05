@@ -1,11 +1,13 @@
 package com.example.evaluacion2.shared.dominio
 
-class Medidor (
+open class Medidor (
     val codigo: String,
     val direccionSuministro: String,
     var activo: Boolean
 ){
-    fun tipo(){
 
+    // Método para obtener el tipo de medidor
+    open fun tipo(): String {
+        return "Genérico"
     }
 }
