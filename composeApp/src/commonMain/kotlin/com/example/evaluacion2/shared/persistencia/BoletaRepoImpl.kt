@@ -23,7 +23,13 @@ class BoletaRepoImpl(private val persistencia: PersistenciaDatos) : BoletaReposi
 }
 
 private fun Boleta.toBytes(): ByteArray {
-    // Funcion de extension privada, solo para esta clase
-    //
-    TODO("Not yet implemented")
+    val datos = """
+        RUT: $idCliente
+        Año: $anio
+        Mes: $mes
+        kWh: $kwhTotal
+        Estado: $estado
+    """.trimIndent()
+    return datos.encodeToByteArray()
 }
+
