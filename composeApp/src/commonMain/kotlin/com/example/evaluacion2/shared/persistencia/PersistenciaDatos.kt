@@ -8,7 +8,7 @@ class PersistenciaDatos(private val driver: StorageDriver) {
         return driver.put(key, bytes)
     }
 
-    fun read(key: String): Boleta? {
+    fun read(key: String): ByteArray? {
         return driver.get(key)
     }
 

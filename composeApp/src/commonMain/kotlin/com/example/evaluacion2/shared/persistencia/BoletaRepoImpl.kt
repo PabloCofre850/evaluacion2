@@ -1,38 +1,39 @@
 package com.example.evaluacion2.shared.persistencia
 
-import com.example.evaluacion2.shared.dominio.Boleta
+import com.example.evaluacion2.shared.dominio.*
 
-// Repositorio de boleta -> Guarda y lista boletas en el sistema de persistencia
 class BoletaRepoImpl(private val persistencia: PersistenciaDatos) : BoletaRepositorio {
 
     override fun guardar(b: Boleta): Boleta {
-        // Generamos una key, para identificar una boleta
+        // Guarda la boleta en persistencia como bytes
         persistencia.save(
-            "boleta_${b.idCliente}_${b.anio}_${b.mes}",
-            b.toBytes()
-            // Convierte la boleta en un arreglo de bytes
+            key = "boleta_${b.idCliente}_${b.anio}_${b.mes}",
+            bytes = b.toBytes()
         )
         return b
-        // Retornamos la boleta guardada
     }
 
-    // Obtenemos una boleta en especifico desde la persistencia, usando rut, año y mes
     override fun obtener(rut: String, anio: Int, mes: Int): Boleta? {
-        return persistencia.read("boleta_${rut}_${anio}_${mes}")
+        // Lee los bytes almacenados
+        val bytes = persistencia.read("boleta_${rut}_${anio}_${mes}")
+        // Si hay datos, los convierte a Boleta
+        return bytes?.toBoleta()
     }
-    // Lista TODAS las boletas pertenecientes a un cliente en particular
+
     override fun listarPorCliente(rut: String): List<Boleta> {
         val keys = persistencia.list("boleta_${rut}_")
-        // Busca todas las "keys" que comiencen con "boleta_<rut del cliente>"
-        return keys.mapNotNull { persistencia.read(it) }
-        // Descarta todas las que sean nulas
+        // Lee todas las claves y convierte los bytes a boletas
+        return keys.mapNotNull {
+            persistencia.read(it)?.toBoleta()
+        }
     }
 }
 
+/* ------------------------------------------------------------
+   FUNCIONES DE EXTENSION: para convertir entre texto y bytes
+   ------------------------------------------------------------ */
 
-// ----- Funcion de extension privada -----
-// Convierte un objeto Boleta a un arreglo de bytes (ByteArray)
-// para poder guardarlo en la persistencia como texto.
+// Convierte una Boleta a bytes (para guardar)
 private fun Boleta.toBytes(): ByteArray {
     val datos = """
         RUT: $idCliente
@@ -41,7 +42,27 @@ private fun Boleta.toBytes(): ByteArray {
         kWh: $kwhTotal
         Estado: $estado
     """.trimIndent()
-    // Convierte ese texto en un arreglo de bytes
     return datos.encodeToByteArray()
 }
 
+// Convierte bytes en una instancia de Boleta (al leer)
+private fun ByteArray.toBoleta(): Boleta {
+    val texto = decodeToString()
+    val lineas = texto.lines().associate {
+        val partes = it.split(":").map { p -> p.trim() }
+        if (partes.size == 2) partes[0] to partes[1] else "" to ""
+    }
+
+    return Boleta(
+        idCliente = lineas["RUT"] ?: "",
+        anio = lineas["Año"]?.toIntOrNull() ?: 0,
+        mes = lineas["Mes"]?.toIntOrNull() ?: 0,
+        kwhTotal = lineas["kWh"]?.toDoubleOrNull() ?: 0.0,
+        detalle = TarifaDetalle(" N/A ", 0.0, 0.0, 0.0), // se deja vacío
+        estado = try {
+            EstadoBoleta.valueOf(lineas["Estado"] ?: "EMITIDA")
+        } catch (_: Exception) {
+            EstadoBoleta.EMITIDA
+        }
+    )
+}

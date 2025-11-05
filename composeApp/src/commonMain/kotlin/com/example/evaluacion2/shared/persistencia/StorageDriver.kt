@@ -18,7 +18,10 @@ class StorageDriver {
 
     // Guarda un valor (como bytes) con una clave única
 
-    fun get(key: String): Boleta? = data[key] as Boleta?
+    // Obtiene un valor (ByteArray) si existe
+    fun get(key: String): ByteArray? {
+        return data[key]
+    }
 
     // Recupera los bytes guardados para una clave,
     // retorna null si no existe
