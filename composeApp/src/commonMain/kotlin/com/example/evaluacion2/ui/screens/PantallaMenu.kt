@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PantallaMenu(
-    onClientes: () -> Unit,
+    onClientes: () -> Unit, // nav.goTo(Screen.Clientes)
     onMedidores: () -> Unit,
     onLecturas: () -> Unit,
     onBoletas: () -> Unit
