@@ -35,8 +35,6 @@ fun PantallaMedidores(
 
     var medidores by remember { mutableStateOf(listOf<Medidor>()) }
 
-    var rutCliente by remember { mutableStateOf(false) }
-
     LaunchedEffect(Unit) {
         medidores = repo.listarPorCliente("")
     }
@@ -205,9 +203,9 @@ private fun FormularioMedidor(
         // Tipo de medidor (Monofásico / Trifásico)
         Text("Tipo de medidor:")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            RadioButton(selected = tipoMono, onClick = { !tipoMono })
+            RadioButton(selected = tipoMono == true, onClick = { tipoMono = true })
             Text("Monofasico")
-            RadioButton(selected = !tipoMono, onClick = { !tipoMono })
+            RadioButton(selected = tipoMono == false, onClick = { tipoMono = false })
             Text("Trifasico")
         }
 
