@@ -35,11 +35,13 @@ fun PantallaMedidores(
 
     var medidores by remember { mutableStateOf(listOf<Medidor>()) }
 
+    var rutCliente by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         medidores = repo.listarPorCliente("")
     }
 
-    //si está mostrando el formulario, lo mostramos
+    //si esta mostrando el formulario, lo mostramos
     if (mostrandoFormulario) {
         FormularioMedidor(
             onGuardar = { nuevo ->
@@ -59,14 +61,14 @@ fun PantallaMedidores(
                 .safeContentPadding()
                 .padding(20.dp)
         ) {
-            Text("Gestión de Medidores", style = MaterialTheme.typography.headlineSmall)
+            Text("Gestion de Medidores", style = MaterialTheme.typography.headlineSmall)
 
             Spacer(Modifier.height(16.dp))
             Text("Medidores registrados", fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
 
             Spacer(Modifier.height(8.dp))
 
-            // Campo de filtro por código o RUT
+            // Campo de filtro por codigo o RUT
 
             OutlinedTextField(
                 value = filtroValor,

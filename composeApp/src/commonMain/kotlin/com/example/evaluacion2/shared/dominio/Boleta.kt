@@ -1,6 +1,6 @@
 package com.example.evaluacion2.shared.dominio
 
-// Importamos esto para poder convertir la clase a JSON fácilmente
+// Importamos esto para poder convertir la clase a JSON facilmente
 import kotlin.math.pow
 
 import kotlinx.serialization.Serializable
@@ -20,13 +20,13 @@ data class Boleta(
     val estado: EstadoBoleta
 ): ExportablePDF {
 
-    // Implementación de la funcion para exportar la boleta como tabla PDF
+    // Implementacion de la funcion para exportar la boleta como tabla PDF
     override fun toPdfTable(): PdfTable {
 
         val headers = listOf("Campo", "Valor")
 
         // Funcion auxiliar para redondear y convertir Double a String con seguridad
-        //ya que no nos dejo utiizar String.format o .format
+        // ya que no nos dejo utiizar String.format o .format
 
         fun Double.toStringSafe(decimals: Int = 2): String {
             val factor = 10.0.pow(decimals)

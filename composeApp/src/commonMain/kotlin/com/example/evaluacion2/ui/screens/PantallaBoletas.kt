@@ -17,18 +17,18 @@ fun PantallaBoletas(
     onVolver: () -> Unit
     // Volver a la pantalla anterior
 ) {
-    // --- Estado general ---
+    // ---- Estado general ----
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
 
-    // --- Variables del formulario ---
+    // ---- Variables del formulario ----
     var rut by remember { mutableStateOf("") }
     var mes by remember { mutableStateOf("") }
     var anio by remember { mutableStateOf("") }
     var consumo by remember { mutableStateOf("") }
     var tipoTarifa by remember { mutableStateOf("Residencial") }
 
-    // --- Repositorio en memoria ---
+    // ---- Repositorio en memoria ----
     val repo = remember { BoletaRepoImpl(PersistenciaDatos(StorageDriver())) }
     var lista by remember { mutableStateOf(listOf<Boleta>()) }
 
