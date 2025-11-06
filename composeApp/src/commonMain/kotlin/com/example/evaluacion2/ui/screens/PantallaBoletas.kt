@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PantallaBoletas(
     onVolver: () -> Unit
+    // Volver a la pantalla anterior
 ) {
     // --- Estado general ---
     val snackbarHostState = remember { SnackbarHostState() }
@@ -31,8 +32,9 @@ fun PantallaBoletas(
     val repo = remember { BoletaRepoImpl(PersistenciaDatos(StorageDriver())) }
     var lista by remember { mutableStateOf(listOf<Boleta>()) }
 
+    // Con Scaffold creamos la estructura general de esta pantalla
     Scaffold(
-        // Con Scaffold creamos la estructura general de esta pantalla
+
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         // Le pasamos snackbarHostState, que controla los mensajes en pantalla
         modifier = Modifier.fillMaxSize()
@@ -45,6 +47,7 @@ fun PantallaBoletas(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Titulo de la pantalla
             Text(
                 text = "Gestión de Boletas",
                 style = MaterialTheme.typography.headlineSmall
@@ -54,6 +57,7 @@ fun PantallaBoletas(
 
             // --- Campos de entrada ---
             // Pedimos los datos para generar la boleta
+
             Campo(label = "RUT", value = rut, onChange = { rut = it })
             Campo(label = "Mes", value = mes, onChange = { mes = it }, tipo = KeyboardType.Number)
             Campo(label = "Año", value = anio, onChange = { anio = it }, tipo = KeyboardType.Number)
@@ -63,9 +67,14 @@ fun PantallaBoletas(
 
 
             // Seleccionamos el tipo de tarifa
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Tipo: ")
-                DropdownMenuTarifa(selected = tipoTarifa, onChange = { tipoTarifa = it })
+                DropdownMenuTarifa(
+                    selected = tipoTarifa,
+                    onChange = { tipoTarifa = it })
+
+                    // Actualiza el estado local
             }
 
             Spacer(Modifier.height(16.dp))
@@ -74,10 +83,19 @@ fun PantallaBoletas(
             Button(
                 onClick = {
                     if (rut.isNotBlank() && mes.isNotBlank() && anio.isNotBlank() && consumo.isNotBlank()) {
+                        // Validamos que no hayan campos en blanco
                         val tarifa = if (tipoTarifa == "Residencial") TarifaResidencial() else TarifaComercial()
+
+                        // Instancia la tarifa adecuada, segun el tipo seleccionado
+
                         val detalle = tarifa.calcular(consumo.toDouble())
 
+                        // Calcula el detalle (subtotal, cargos, iva, total) en base al consumo
+
                         val boleta = Boleta(
+
+                            // Crea el objeto Boleta con todos los datos del formulario
+
                             idCliente = rut,
                             anio = anio.toInt(),
                             mes = mes.toInt(),
@@ -89,12 +107,16 @@ fun PantallaBoletas(
                         repo.guardar(boleta)
                         lista = lista + boleta
 
+                        // Guardamos en persistencia (BOLETA), y creamos una nueva lista con las boletas guardadas
+
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar("¡Boleta guardada correctamente!")
+                            // Muestra el mensaje de que se guardo la boleta correctamente
                         }
                     } else {
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar("¡¡Complete todos los campos!!")
+                            // Si algun campo esta en blanco, muestra el mensaje de advertencia
                         }
                     }
                 },
@@ -145,8 +167,13 @@ private fun Campo(label: String, value: String, onChange: (String) -> Unit, tipo
 }
 
 @Composable
-private fun DropdownMenuTarifa(selected: String, onChange: (String) -> Unit) {
+private fun DropdownMenuTarifa(
+    selected: String,
+    onChange: (String) -> Unit)
+    // Avisa a la clase padre que se selecciono
+{
     var expanded by remember { mutableStateOf(false) }
+    // Controla si la pantalla esta abierta o no
 
     Box {
         Button(onClick = { expanded = true }) {
@@ -154,6 +181,7 @@ private fun DropdownMenuTarifa(selected: String, onChange: (String) -> Unit) {
         }
 
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            // Menu con dos las dos opciones de tarifa
             DropdownMenuItem(text = { Text("Residencial") }, onClick = {
                 onChange("Residencial"); expanded = false
             })

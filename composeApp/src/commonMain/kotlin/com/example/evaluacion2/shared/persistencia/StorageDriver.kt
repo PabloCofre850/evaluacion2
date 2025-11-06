@@ -7,7 +7,7 @@ import com.example.evaluacion2.shared.dominio.Boleta
 
 class StorageDriver {
 
-    private val data = mutableMapOf<String, ByteArray>()
+    private val data = mutableMapOf <String, ByteArray> ()
 
     // Diccionario en memoria
 
@@ -18,12 +18,15 @@ class StorageDriver {
 
     // Guarda un valor (como bytes) con una clave única
 
-    fun get(key: String): Boleta? = data[key] as Boleta?
+    // Obtiene un valor (ByteArray) si existe
+    fun get(key: String): ByteArray? =
+        data[key]
+
 
     // Recupera los bytes guardados para una clave,
     // retorna null si no existe
 
-    fun keys(prefix: String = ""): List<String> =
+    fun keys(prefix: String): List<String> =
         data.keys.filter { it.startsWith(prefix) }
 
     // Lista todas las claves que comienzan con cierto prefijo,
