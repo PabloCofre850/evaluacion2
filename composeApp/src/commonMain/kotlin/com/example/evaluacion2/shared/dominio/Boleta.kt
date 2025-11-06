@@ -7,10 +7,10 @@ import kotlinx.serialization.Serializable
 
 
 
-// La clase Boleta representa una boleta de consumo eléctrico emitida a un cliente.
-// Es una 'data class' porque solo guarda información (no tiene lógica).
+// La clase Boleta representa una boleta de consumo electrico emitida a un cliente.
+// Es una "data class" porque solo guarda informacion (no tiene logica).
 
-@Serializable // 👈 Necesario para guardar y/o leer como JSON
+@Serializable // Necesario para guardar y/o leer
 data class Boleta(
     val idCliente: String,
     val anio: Int,
@@ -20,12 +20,12 @@ data class Boleta(
     val estado: EstadoBoleta
 ): ExportablePDF {
 
-    // Implementación de la función para exportar la boleta como tabla PDF
+    // Implementación de la funcion para exportar la boleta como tabla PDF
     override fun toPdfTable(): PdfTable {
 
         val headers = listOf("Campo", "Valor")
 
-        // Función auxiliar para redondear y convertir Double a String con seguridad
+        // Funcion auxiliar para redondear y convertir Double a String con seguridad
         //ya que no nos dejo utiizar String.format o .format
 
         fun Double.toStringSafe(decimals: Int = 2): String {

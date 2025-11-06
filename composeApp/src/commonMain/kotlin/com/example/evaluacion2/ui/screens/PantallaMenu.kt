@@ -31,7 +31,7 @@ fun PantallaMenu(
             verticalArrangement = Arrangement.Center
         ) {
             Text("¡Bienvenido!", style = MaterialTheme.typography.displayLarge)
-            Text("Me voy de suicidar", style = MaterialTheme.typography.headlineSmall)
+            Text("CGE", style = MaterialTheme.typography.headlineSmall)
         }
 
         Spacer(Modifier.width(40.dp))
