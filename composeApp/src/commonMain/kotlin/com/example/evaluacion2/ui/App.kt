@@ -28,7 +28,10 @@ fun App() {
             onLecturas = { nav.goTo(Screen.Lecturas) },
             onBoletas = { nav.goTo(Screen.Boletas) }
         )
-        Screen.Clientes  -> PantallaClientes(onVolver = nav::backToMenu)
+        Screen.Clientes  -> PantallaClientes(
+
+            onVolver = nav::backToMenu
+        )
 
         Screen.Medidores -> PantallaMedidores(
             repo = medidorRepo,
