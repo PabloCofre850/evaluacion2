@@ -44,7 +44,7 @@ fun PantallaMenu(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Panel de gestión", style = MaterialTheme.typography.titleMedium)
+            Text("Panel de gestion", style = MaterialTheme.typography.titleMedium)
 
             Spacer(Modifier.height(32.dp))
 
@@ -52,8 +52,8 @@ fun PantallaMenu(
                 onClick = onClientes,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(50.dp)
+                    .width(280.dp)
+                    .height(80.dp)
             ) { Text("Gestionar Clientes") }
 
             Spacer(Modifier.height(16.dp))
@@ -61,8 +61,8 @@ fun PantallaMenu(
                 onClick = onMedidores,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(50.dp)
+                    .width(280.dp)
+                    .height(80.dp)
             ) { Text("Gestionar Medidores") }
 
             Spacer(Modifier.height(16.dp))
@@ -70,8 +70,8 @@ fun PantallaMenu(
                 onClick = onLecturas,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(50.dp)
+                    .width(280.dp)
+                    .height(80.dp)
             ) { Text("Gestionar Lecturas") }
 
             Spacer(Modifier.height(16.dp))
@@ -79,8 +79,8 @@ fun PantallaMenu(
                 onClick = onBoletas,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier
-                    .width(220.dp)
-                    .height(50.dp)
+                    .width(280.dp)
+                    .height(80.dp)
             ) { Text("Gestionar Boletas") }
         }
     }

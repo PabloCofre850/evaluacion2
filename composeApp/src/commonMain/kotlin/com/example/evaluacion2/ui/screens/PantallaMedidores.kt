@@ -19,55 +19,59 @@ import com.example.evaluacion2.shared.persistencia.MedidorRepoImpl
 import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import com.example.evaluacion2.shared.persistencia.MedidorRepositorio
 
 @Composable
 fun PantallaMedidores(
+    repo: MedidorRepositorio,
     onVolver: () -> Unit
 ) {
-    
+    var rutCliente by remember { mutableStateOf("") }
+
     var filtroValor by remember { mutableStateOf("") }
-    
+
     var mostrandoFormulario by remember { mutableStateOf(false) }
-    
+
     var seleccionado by remember { mutableStateOf<Medidor?>(null) }
-    
-    val repo = remember { MedidorRepoImpl(PersistenciaDatos(StorageDriver())) }
 
     var medidores by remember { mutableStateOf(listOf<Medidor>()) }
 
-    LaunchedEffect(Unit) {
-        medidores = repo.listarPorCliente("")
+    LaunchedEffect(rutCliente, mostrandoFormulario) {
+        medidores = repo.listarPorCliente(rutCliente)
+        seleccionado = null
     }
 
-    //si esta mostrando el formulario, lo mostramos
-    if (mostrandoFormulario) {
-        FormularioMedidor(
-            onGuardar = { nuevo ->
-                repo.crear(nuevo, nuevo.codigo)
-                medidores = repo.listarPorCliente("")
-                mostrandoFormulario = false
-            },
-            onCancelar = {
-                mostrandoFormulario = false }
+    Column(
+        Modifier
+            .fillMaxSize()
+            .safeContentPadding()
+            .padding(20.dp)
+    ) {
+        Text("Gestion de Medidores", style = MaterialTheme.typography.headlineSmall)
+
+        Spacer(Modifier.height(16.dp))
+
+        // —— CAMPO RUT + BOTÓN CARGAR ——                                 <=
+        OutlinedTextField(
+            value = rutCliente,
+            onValueChange = { rutCliente = it },
+            label = { Text("RUT Cliente") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
         )
+        Spacer(Modifier.height(8.dp))
 
-    // si no, mostramos la lista
-    } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .safeContentPadding()
-                .padding(20.dp)
-        ) {
-            Text("Gestion de Medidores", style = MaterialTheme.typography.headlineSmall)
+        if (mostrandoFormulario) {
+            FormularioMedidor(
+                onGuardar = { nuevo ->
+                    repo.crear(nuevo, rutCliente)
+                    mostrandoFormulario = false
+                },
+                onCancelar = { mostrandoFormulario = false }
+            )
 
-            Spacer(Modifier.height(16.dp))
-            Text("Medidores registrados", fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
-
-            Spacer(Modifier.height(8.dp))
-
-            // Campo de filtro por codigo o RUT
-
+        } else {
+            // --- Filtra por codiog ---
             OutlinedTextField(
                 value = filtroValor,
                 onValueChange = { filtroValor = it },
@@ -78,6 +82,7 @@ fun PantallaMedidores(
 
             Spacer(Modifier.height(16.dp))
 
+            // -- Listado filtrado solo en UI ---
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -86,24 +91,21 @@ fun PantallaMedidores(
                     .padding(8.dp)
             ) {
                 item {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text("Codigo", fontWeight = FontWeight.Bold)
-                        Text("Direccion", fontWeight = FontWeight.Bold)
-                        Text("Activo", fontWeight = FontWeight.Bold)
-                        Text("Tipo", fontWeight = FontWeight.Bold)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text("Código",    fontWeight = FontWeight.Bold)
+                        Text("Dirección", fontWeight = FontWeight.Bold)
+                        Text("Activo",    fontWeight = FontWeight.Bold)
+                        Text("Tipo",      fontWeight = FontWeight.Bold)
                     }
-                    HorizontalDivider()
+                    Divider()
                 }
 
-                items(medidores.filter {
-
-                    // Aplicamos el filtro si no está vacío
-                    filtroValor.isBlank() || it.codigo.contains(filtroValor, true)
-                }) { medidor ->
-                    val isSelected = seleccionado == medidor
+                items(
+                    medidores.filter { filtroValor.isBlank() ||
+                            it.codigo.contains(filtroValor, ignoreCase = true)
+                    }
+                ) { medidor ->
+                    val isSelected = medidor == seleccionado
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -111,7 +113,8 @@ fun PantallaMedidores(
                             .padding(vertical = 4.dp)
                             .border(
                                 width = if (isSelected) 2.dp else 0.dp,
-                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.background,
                                 shape = RoundedCornerShape(4.dp)
                             )
                             .padding(4.dp),
@@ -122,7 +125,7 @@ fun PantallaMedidores(
                         Text(if (medidor.activo) "Sí" else "No")
                         Text(medidor.tipo())
                     }
-                    HorizontalDivider()
+                    Divider()
                 }
             }
 
@@ -133,8 +136,7 @@ fun PantallaMedidores(
                     onClick = {
                         seleccionado?.let {
                             repo.eliminar(it.codigo)
-                            medidores = repo.listarPorCliente("")
-                            seleccionado = null
+                            // recarga automática vía LaunchedEffect
                         }
                     },
                     enabled = seleccionado != null,
@@ -153,10 +155,12 @@ fun PantallaMedidores(
 
             Spacer(Modifier.height(24.dp))
             Button(onClick = onVolver) {
-                Text("Volver al menú") }
+                Text("Volver al menú")
+            }
         }
     }
 }
+
 
 
 // Formulario de creacion con seleccion de "Activo / No activo"
@@ -259,6 +263,11 @@ private fun FormularioMedidor(
 @Preview
 @Composable
 private fun PantallaMedidoresPreview() {
-    PantallaMedidores(onVolver = {})
+    val previewRepo = remember {
+        MedidorRepoImpl(PersistenciaDatos(StorageDriver()))
+    }
+    PantallaMedidores(
+        repo = previewRepo,
+        onVolver = {}
+    )
 }
-
