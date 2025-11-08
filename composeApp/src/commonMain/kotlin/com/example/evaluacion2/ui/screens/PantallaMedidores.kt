@@ -134,12 +134,14 @@ fun PantallaMedidores(
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 Button(
                     onClick = {
-                        seleccionado?.let {
-                            repo.eliminar(it.codigo)
-                            // recarga automática vía LaunchedEffect
+                        seleccionado?.let { toDelete ->
+                            if (repo.eliminar(toDelete.codigo)) {
+                                medidores = medidores.filter { it.codigo != toDelete.codigo }
+                                seleccionado = null
+                            }
                         }
                     },
-                    enabled = seleccionado != null,
+                    enabled = (seleccionado != null),
                     modifier = Modifier.width(160.dp)
                 ) {
                     Text("Eliminar Medidor")
