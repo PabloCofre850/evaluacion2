@@ -23,7 +23,7 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
-private val CGEBlue      = Color(0xFF4A148C)
+private val CGEBlue = Color(0xFF4A148C)
 
 @Composable
 fun PantallaMedidores(
@@ -31,31 +31,34 @@ fun PantallaMedidores(
     onVolver: () -> Unit
 ) {
     var rutCliente by remember { mutableStateOf("") }
-
     var filtroValor by remember { mutableStateOf("") }
-
     var mostrandoFormulario by remember { mutableStateOf(false) }
-
     var seleccionado by remember { mutableStateOf<Medidor?>(null) }
-
     var medidores by remember { mutableStateOf(listOf<Medidor>()) }
 
+    // Solo recarga si el RUT no está vacío
     LaunchedEffect(rutCliente, mostrandoFormulario) {
-        medidores = repo.listarPorCliente(rutCliente)
+        if (rutCliente.isNotBlank()) {
+            medidores = repo.listarPorCliente(rutCliente)
+        }
         seleccionado = null
     }
-    // Texto de gestion de medidores
+
+    // Barra superior
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(CGEBlue)  // color de la “barra”
-            .padding(vertical = 8.dp, horizontal = 100.dp)            // espacio dentro
-    ){
-        Text("Gestion de Medidores", fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold)
-
+            .background(CGEBlue)
+            .padding(vertical = 8.dp, horizontal = 100.dp)
+    ) {
+        Text(
+            "Gestión de Medidores",
+            fontSize = 40.sp,
+            color = Color.White,
+            fontWeight = FontWeight.Bold
+        )
     }
 
-    // Campos de busqueda y botones
     Column(
         Modifier
             .fillMaxSize()
@@ -64,38 +67,40 @@ fun PantallaMedidores(
     ) {
         Spacer(Modifier.height(52.dp))
 
-        // —— CAMPO RUT + BOTÓN CARGAR ——                                 <=
-        OutlinedTextField(
-            value = rutCliente,
-            onValueChange = { rutCliente = it },
-            label = { Text("RUT Cliente (Ej: 12.345.678-9)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth()
-        )
-        Spacer(Modifier.height(8.dp))
+        // 🔹 Barra de búsqueda de medidores existentes (se mantiene fuera del formulario)
+        if (!mostrandoFormulario) {
+            OutlinedTextField(
+                value = rutCliente,
+                onValueChange = { rutCliente = it },
+                label = { Text("Buscar por RUT Cliente") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(8.dp))
+        }
 
+        // 🔹 Si está en modo formulario, se muestra solo el formulario
         if (mostrandoFormulario) {
             FormularioMedidor(
-                onGuardar = { nuevo ->
-                    repo.crear(nuevo, rutCliente)
+                onGuardar = { nuevo, rutIngresado ->
+                    repo.crear(nuevo, rutIngresado)
                     mostrandoFormulario = false
+                    rutCliente = rutIngresado // actualiza para ver los del mismo cliente
                 },
                 onCancelar = { mostrandoFormulario = false }
             )
-
         } else {
-            // --- Filtra por codiog ---
+            // 🔹 Resto del contenido normal
             OutlinedTextField(
                 value = filtroValor,
                 onValueChange = { filtroValor = it },
-                label = { Text("Filtrar por codigo") },
+                label = { Text("Filtrar por código") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(16.dp))
 
-            // -- Listado filtrado solo en UI ---
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -105,18 +110,16 @@ fun PantallaMedidores(
             ) {
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Código",    fontWeight = FontWeight.Bold)
+                        Text("Código", fontWeight = FontWeight.Bold)
                         Text("Dirección", fontWeight = FontWeight.Bold)
-                        Text("Activo",    fontWeight = FontWeight.Bold)
-                        Text("Tipo",      fontWeight = FontWeight.Bold)
+                        Text("Activo", fontWeight = FontWeight.Bold)
+                        Text("Tipo", fontWeight = FontWeight.Bold)
                     }
                     Divider()
                 }
 
                 items(
-                    medidores.filter { filtroValor.isBlank() ||
-                            it.codigo.contains(filtroValor, ignoreCase = true)
-                    }
+                    medidores.filter { filtroValor.isBlank() || it.codigo.contains(filtroValor, ignoreCase = true) }
                 ) { medidor ->
                     val isSelected = medidor == seleccionado
                     Row(
@@ -176,20 +179,22 @@ fun PantallaMedidores(
     }
 }
 
-
-
-// Formulario de creacion con seleccion de "Activo / No activo"
+// -------------------
+// Formulario de creación
+// -------------------
 @Composable
 private fun FormularioMedidor(
-    onGuardar: (Medidor) -> Unit,
+    onGuardar: (Medidor, String) -> Unit,
     onCancelar: () -> Unit
 ) {
+    var rut by remember { mutableStateOf("") }
     var codigo by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
     var tipoMono by remember { mutableStateOf(true) }
     var activo by remember { mutableStateOf<Boolean?>(null) }
     var potenciaMaxKw by remember { mutableStateOf("") }
     var factorPotencia by remember { mutableStateOf("") }
+    var mostrarErrorRut by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -198,17 +203,39 @@ private fun FormularioMedidor(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text("Nuevo Medidor", style = MaterialTheme.typography.headlineSmall)
+
+        // ✅ Campo obligatorio de RUT
+        OutlinedTextField(
+            value = rut,
+            onValueChange = {
+                rut = it
+                mostrarErrorRut = false
+            },
+            label = { Text("RUT Cliente (obligatorio)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            isError = mostrarErrorRut
+        )
+
+        if (mostrarErrorRut) {
+            Text(
+                "Debe ingresar un RUT válido para crear el medidor.",
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+
         OutlinedTextField(
             value = codigo,
             onValueChange = { codigo = it },
-            label = { Text("Codigo del medidor") })
+            label = { Text("Código del medidor") }
+        )
 
         OutlinedTextField(
             value = direccion,
             onValueChange = { direccion = it },
-            label = { Text("Direccion suministro") })
-
-        // Sección: Estado activo/inactivo
+            label = { Text("Dirección suministro") }
+        )
 
         Text("Estado del medidor:")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -218,14 +245,12 @@ private fun FormularioMedidor(
             Text("No activo")
         }
 
-
-        // Tipo de medidor (Monofásico / Trifásico)
         Text("Tipo de medidor:")
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             RadioButton(selected = tipoMono == true, onClick = { tipoMono = true })
-            Text("Monofasico")
+            Text("Monofásico")
             RadioButton(selected = tipoMono == false, onClick = { tipoMono = false })
-            Text("Trifasico")
+            Text("Trifásico")
         }
 
         OutlinedTextField(
@@ -238,14 +263,19 @@ private fun FormularioMedidor(
             OutlinedTextField(
                 value = factorPotencia,
                 onValueChange = { factorPotencia = it },
-                label = { Text("Factor Potencia") })
+                label = { Text("Factor Potencia") }
+            )
         }
 
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(onClick = onCancelar) {
-                Text("Salir") }
+            Button(onClick = onCancelar) { Text("Salir") }
             Button(
                 onClick = {
+                    if (rut.isBlank()) {
+                        mostrarErrorRut = true
+                        return@Button
+                    }
+
                     if (codigo.isNotBlank() && direccion.isNotBlank() && activo != null) {
                         val medidor = if (tipoMono) {
                             MedidorMonofasico(
@@ -254,19 +284,22 @@ private fun FormularioMedidor(
                                 activo = activo!!,
                                 potenciaMaxKw = potenciaMaxKw.toDouble()
                             )
-                    } else {
-                        MedidorTrifasico(
-                            codigo = codigo,
-                            direccionSuministro = direccion,
-                            activo = activo!!,
-                            potenciaMaxKw = potenciaMaxKw.toDouble(),
-                            factorPotencia = factorPotencia.toDoubleOrNull() ?: 1.0
-                        )
-                    }
-                        onGuardar(medidor)
+                        } else {
+                            MedidorTrifasico(
+                                codigo = codigo,
+                                direccionSuministro = direccion,
+                                activo = activo!!,
+                                potenciaMaxKw = potenciaMaxKw.toDouble(),
+                                factorPotencia = factorPotencia.toDoubleOrNull() ?: 1.0
+                            )
+                        }
+                        onGuardar(medidor, rut)
                     }
                 },
-                enabled = codigo.isNotBlank() && direccion.isNotBlank() && activo != null && potenciaMaxKw.toDoubleOrNull() != null
+                enabled = codigo.isNotBlank() &&
+                        direccion.isNotBlank() &&
+                        activo != null &&
+                        potenciaMaxKw.toDoubleOrNull() != null
             ) {
                 Text("Guardar")
             }
@@ -274,15 +307,11 @@ private fun FormularioMedidor(
     }
 }
 
-
 @Preview
 @Composable
 private fun PantallaMedidoresPreview() {
     val previewRepo = remember {
         MedidorRepoImpl(PersistenciaDatos(StorageDriver()))
     }
-    PantallaMedidores(
-        repo = previewRepo,
-        onVolver = {}
-    )
+    PantallaMedidores(repo = previewRepo, onVolver = {})
 }
