@@ -1,17 +1,24 @@
 package com.example.evaluacion2.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.evaluacion2.shared.dominio.*
 import com.example.evaluacion2.shared.persistencia.*
 import com.example.evaluacion2.shared.servicios.PdfService
 import kotlinx.coroutines.launch
+
+private val CGEBlue      = Color(0xFF4A148C)
+
 
 @Composable
 fun PantallaBoletas(
@@ -37,20 +44,26 @@ fun PantallaBoletas(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     ) { padding ->
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(CGEBlue)  // color de la “barra”
+                .padding(vertical = 8.dp, horizontal = 100.dp)            // espacio dentro
+        ){
+            Text("Gestion de boletas", fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold)
+
+        }
+
         Column(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
                 .safeContentPadding()
-                .padding(24.dp),
+                .padding(52.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "Gestión de Boletas",
-                style = MaterialTheme.typography.headlineSmall
-            )
-
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(52.dp))
 
             Campo(label = "RUT", value = rut, onChange = { rut = it })
             Campo(label = "Mes", value = mes, onChange = { mes = it }, tipo = KeyboardType.Number)

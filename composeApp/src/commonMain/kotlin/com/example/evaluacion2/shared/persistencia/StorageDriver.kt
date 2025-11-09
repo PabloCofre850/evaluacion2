@@ -3,7 +3,7 @@ package com.example.evaluacion2.shared.persistencia
 
 class StorageDriver {
 
-    // Diccionario en memoria: clave → contenido
+    // Diccionario en memoria: clave -> contenido
     private val data = mutableMapOf<String, ByteArray>()
 
 

@@ -102,7 +102,7 @@ fun PantallaClientes(
                                 if (modo is FormMode.Edit) modo = FormMode.None
                             }
                         },
-                        label = { Text("Ingresar RUT") },
+                        label = { Text("Ingresar RUT (Ej: 12.345.678-9)") },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(0.6f)
                     )
