@@ -1,14 +1,21 @@
 package com.example.evaluacion2.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+
+private val CGEBlue      = Color(0xFF4A148C)
 
 @Composable
 fun PantallaMenu(
@@ -17,6 +24,13 @@ fun PantallaMenu(
     onLecturas: () -> Unit,
     onBoletas: () -> Unit
 ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)                                   // fondo blanco
+            .border(10.dp, CGEBlue)   // marco azul redondeado
+            .padding(20.dp)                                            // espacio interior
+    )
     Row( // Fila principal
         modifier = Modifier
             .fillMaxSize()
@@ -37,14 +51,24 @@ fun PantallaMenu(
 
         Spacer(Modifier.width(40.dp))
 
-        Column( // Columna Menu
+        // Columna Menu
+
+        Column(
             modifier = Modifier
                 .weight(1f)
-                .fillMaxHeight(), // Ocupa 1/3 del total de la fila
+                .fillMaxHeight() // Ocupa 1/3 del total de la fila
+                .border(8.dp, CGEBlue, RoundedCornerShape(10.dp))
+                .padding(16.dp),
+
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Panel de gestion", style = MaterialTheme.typography.titleMedium)
+            Text(
+                "Panel de gestion",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = CGEBlue
+                ))
 
             Spacer(Modifier.height(32.dp))
 
