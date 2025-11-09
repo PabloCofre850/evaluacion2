@@ -20,6 +20,7 @@ import com.example.evaluacion2.shared.persistencia.StorageDriver
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.example.evaluacion2.shared.persistencia.MedidorRepositorio
 import androidx.compose.foundation.background
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 
@@ -196,112 +197,132 @@ private fun FormularioMedidor(
     var factorPotencia by remember { mutableStateOf("") }
     var mostrarErrorRut by remember { mutableStateOf(false) }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
     ) {
-        Text("Nuevo Medidor", style = MaterialTheme.typography.headlineSmall)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth(0.5f) // 50% del ancho de la pantalla
+                .padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically)
+        ) {
+            Text("Nuevo Medidor", style = MaterialTheme.typography.headlineSmall)
 
-        // ✅ Campo obligatorio de RUT
-        OutlinedTextField(
-            value = rut,
-            onValueChange = {
-                rut = it
-                mostrarErrorRut = false
-            },
-            label = { Text("RUT Cliente (obligatorio)") },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            isError = mostrarErrorRut
-        )
-
-        if (mostrarErrorRut) {
-            Text(
-                "Debe ingresar un RUT válido para crear el medidor.",
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
-        OutlinedTextField(
-            value = codigo,
-            onValueChange = { codigo = it },
-            label = { Text("Código del medidor") }
-        )
-
-        OutlinedTextField(
-            value = direccion,
-            onValueChange = { direccion = it },
-            label = { Text("Dirección suministro") }
-        )
-
-        Text("Estado del medidor:")
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            RadioButton(selected = activo == true, onClick = { activo = true })
-            Text("Activo")
-            RadioButton(selected = activo == false, onClick = { activo = false })
-            Text("No activo")
-        }
-
-        Text("Tipo de medidor:")
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            RadioButton(selected = tipoMono == true, onClick = { tipoMono = true })
-            Text("Monofásico")
-            RadioButton(selected = tipoMono == false, onClick = { tipoMono = false })
-            Text("Trifásico")
-        }
-
-        OutlinedTextField(
-            value = potenciaMaxKw,
-            onValueChange = { potenciaMaxKw = it },
-            label = { Text("Potencia Máx (kW)") }
-        )
-
-        if (!tipoMono) {
+            // ✅ Campo obligatorio de RUT
             OutlinedTextField(
-                value = factorPotencia,
-                onValueChange = { factorPotencia = it },
-                label = { Text("Factor Potencia") }
-            )
-        }
-
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(onClick = onCancelar) { Text("Salir") }
-            Button(
-                onClick = {
-                    if (rut.isBlank()) {
-                        mostrarErrorRut = true
-                        return@Button
-                    }
-
-                    if (codigo.isNotBlank() && direccion.isNotBlank() && activo != null) {
-                        val medidor = if (tipoMono) {
-                            MedidorMonofasico(
-                                codigo = codigo,
-                                direccionSuministro = direccion,
-                                activo = activo!!,
-                                potenciaMaxKw = potenciaMaxKw.toDouble()
-                            )
-                        } else {
-                            MedidorTrifasico(
-                                codigo = codigo,
-                                direccionSuministro = direccion,
-                                activo = activo!!,
-                                potenciaMaxKw = potenciaMaxKw.toDouble(),
-                                factorPotencia = factorPotencia.toDoubleOrNull() ?: 1.0
-                            )
-                        }
-                        onGuardar(medidor, rut)
-                    }
+                value = rut,
+                onValueChange = {
+                    rut = it
+                    mostrarErrorRut = false
                 },
-                enabled = codigo.isNotBlank() &&
-                        direccion.isNotBlank() &&
-                        activo != null &&
-                        potenciaMaxKw.toDoubleOrNull() != null
+                label = { Text("RUT Cliente (obligatorio)") },
+                singleLine = true,
+                isError = mostrarErrorRut,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (mostrarErrorRut) {
+                Text(
+                    "Debe ingresar un RUT válido para crear el medidor.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            OutlinedTextField(
+                value = codigo,
+                onValueChange = { codigo = it },
+                label = { Text("Código del medidor") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = direccion,
+                onValueChange = { direccion = it },
+                label = { Text("Dirección suministro") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Text("Estado del medidor:")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Guardar")
+                RadioButton(selected = activo == true, onClick = { activo = true })
+                Text("Activo")
+                RadioButton(selected = activo == false, onClick = { activo = false })
+                Text("No activo")
+            }
+
+            Text("Tipo de medidor:")
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioButton(selected = tipoMono == true, onClick = { tipoMono = true })
+                Text("Monofásico")
+                RadioButton(selected = tipoMono == false, onClick = { tipoMono = false })
+                Text("Trifásico")
+            }
+
+            OutlinedTextField(
+                value = potenciaMaxKw,
+                onValueChange = { potenciaMaxKw = it },
+                label = { Text("Potencia Máx (kW)") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (!tipoMono) {
+                OutlinedTextField(
+                    value = factorPotencia,
+                    onValueChange = { factorPotencia = it },
+                    label = { Text("Factor Potencia") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(onClick = onCancelar) { Text("Salir") }
+                Button(
+                    onClick = {
+                        if (rut.isBlank()) {
+                            mostrarErrorRut = true
+                            return@Button
+                        }
+
+                        if (codigo.isNotBlank() && direccion.isNotBlank() && activo != null) {
+                            val medidor = if (tipoMono) {
+                                MedidorMonofasico(
+                                    codigo = codigo,
+                                    direccionSuministro = direccion,
+                                    activo = activo!!,
+                                    potenciaMaxKw = potenciaMaxKw.toDouble()
+                                )
+                            } else {
+                                MedidorTrifasico(
+                                    codigo = codigo,
+                                    direccionSuministro = direccion,
+                                    activo = activo!!,
+                                    potenciaMaxKw = potenciaMaxKw.toDouble(),
+                                    factorPotencia = factorPotencia.toDoubleOrNull() ?: 1.0
+                                )
+                            }
+                            onGuardar(medidor, rut)
+                        }
+                    },
+                    enabled = codigo.isNotBlank() &&
+                            direccion.isNotBlank() &&
+                            activo != null &&
+                            potenciaMaxKw.toDoubleOrNull() != null
+                ) {
+                    Text("Guardar")
+                }
             }
         }
     }
