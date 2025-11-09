@@ -23,24 +23,38 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
+import com.example.evaluacion2.shared.persistencia.ClienteRepoImpl
+import com.example.evaluacion2.shared.persistencia.ClienteRepositorio
 
 private val CGEBlue = Color(0xFF4A148C)
 
 @Composable
 fun PantallaMedidores(
     repo: MedidorRepositorio,
-    onVolver: () -> Unit
+    onVolver: () -> Unit,
+    clienteRepo: ClienteRepositorio = ClienteRepoImpl(PersistenciaDatos(StorageDriver()))
 ) {
     var rutCliente by remember { mutableStateOf("") }
     var filtroValor by remember { mutableStateOf("") }
     var mostrandoFormulario by remember { mutableStateOf(false) }
     var seleccionado by remember { mutableStateOf<Medidor?>(null) }
     var medidores by remember { mutableStateOf(listOf<Medidor>()) }
+    var errorRutBusqueda by remember { mutableStateOf<String?>(null) }
 
-    // Solo recarga si el RUT no está vacío
+    // Solo recarga si el RUT no está vacío y existe el cliente
     LaunchedEffect(rutCliente, mostrandoFormulario) {
         if (rutCliente.isNotBlank()) {
-            medidores = repo.listarPorCliente(rutCliente)
+            val cliente = clienteRepo.obtenerPorRut(rutCliente)
+            if (cliente != null) {
+                medidores = repo.listarPorCliente(rutCliente)
+                errorRutBusqueda = null
+            } else {
+                medidores = emptyList()
+                errorRutBusqueda = "El RUT ingresado no corresponde a un cliente registrado."
+            }
+        } else {
+            medidores = emptyList()
+            errorRutBusqueda = null
         }
         seleccionado = null
     }
@@ -75,9 +89,18 @@ fun PantallaMedidores(
                 onValueChange = { rutCliente = it },
                 label = { Text("Buscar por RUT Cliente") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = errorRutBusqueda != null
             )
             Spacer(Modifier.height(8.dp))
+            if (errorRutBusqueda != null) {
+                Text(
+                    errorRutBusqueda!!,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(Modifier.height(8.dp))
+            }
         }
 
         // 🔹 Si está en modo formulario, se muestra solo el formulario
@@ -88,7 +111,8 @@ fun PantallaMedidores(
                     mostrandoFormulario = false
                     rutCliente = rutIngresado // actualiza para ver los del mismo cliente
                 },
-                onCancelar = { mostrandoFormulario = false }
+                onCancelar = { mostrandoFormulario = false },
+                existeCliente = { rut -> clienteRepo.obtenerPorRut(rut) != null }
             )
         } else {
             // 🔹 Resto del contenido normal
@@ -186,7 +210,8 @@ fun PantallaMedidores(
 @Composable
 private fun FormularioMedidor(
     onGuardar: (Medidor, String) -> Unit,
-    onCancelar: () -> Unit
+    onCancelar: () -> Unit,
+    existeCliente: (String) -> Boolean
 ) {
     var rut by remember { mutableStateOf("") }
     var codigo by remember { mutableStateOf("") }
@@ -195,7 +220,7 @@ private fun FormularioMedidor(
     var activo by remember { mutableStateOf<Boolean?>(null) }
     var potenciaMaxKw by remember { mutableStateOf("") }
     var factorPotencia by remember { mutableStateOf("") }
-    var mostrarErrorRut by remember { mutableStateOf(false) }
+    var errorRut by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -211,22 +236,22 @@ private fun FormularioMedidor(
         ) {
             Text("Nuevo Medidor", style = MaterialTheme.typography.headlineSmall)
 
-            // ✅ Campo obligatorio de RUT
+            // ✅ Campo obligatorio de RUT y debe existir
             OutlinedTextField(
                 value = rut,
                 onValueChange = {
                     rut = it
-                    mostrarErrorRut = false
+                    errorRut = null
                 },
                 label = { Text("RUT Cliente (obligatorio)") },
                 singleLine = true,
-                isError = mostrarErrorRut,
+                isError = errorRut != null,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (mostrarErrorRut) {
+            if (errorRut != null) {
                 Text(
-                    "Debe ingresar un RUT válido para crear el medidor.",
+                    errorRut!!,
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
@@ -292,7 +317,11 @@ private fun FormularioMedidor(
                 Button(
                     onClick = {
                         if (rut.isBlank()) {
-                            mostrarErrorRut = true
+                            errorRut = "Debe ingresar un RUT."
+                            return@Button
+                        }
+                        if (!existeCliente(rut)) {
+                            errorRut = "El RUT ingresado no corresponde a un cliente registrado."
                             return@Button
                         }
 

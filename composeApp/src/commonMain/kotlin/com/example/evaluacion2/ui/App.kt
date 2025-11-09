@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.example.evaluacion2.shared.persistencia.ClienteRepoImpl
 import com.example.evaluacion2.shared.persistencia.MedidorRepoImpl
 import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
@@ -55,6 +56,8 @@ fun App() {
 
     val medidorRepo = remember { MedidorRepoImpl(PersistenciaDatos(storageDriver)) }
 
+    val clienteRepo = remember { ClienteRepoImpl(PersistenciaDatos(storageDriver)) }
+
     MaterialTheme(
         colorScheme = CGEColorScheme,
         typography  = CGETypography,
@@ -69,6 +72,7 @@ fun App() {
                 Screen.Clientes -> PantallaClientes(onVolver = nav::backToMenu)
 
                 Screen.Medidores -> PantallaMedidores(
+
                     repo     = medidorRepo,
                     onVolver = nav::backToMenu
                 )

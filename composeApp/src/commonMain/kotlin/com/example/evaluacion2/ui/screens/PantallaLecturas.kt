@@ -17,6 +17,10 @@ import com.example.evaluacion2.shared.dominio.LecturaConsumo
 import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
 import com.example.evaluacion2.shared.persistencia.LecturaRepoImpl
+import com.example.evaluacion2.shared.persistencia.ClienteRepoImpl
+import com.example.evaluacion2.shared.persistencia.ClienteRepositorio
+import com.example.evaluacion2.shared.persistencia.MedidorRepoImpl
+import com.example.evaluacion2.shared.persistencia.MedidorRepositorio
 
 private val CGEBlue      = Color(0xFF4A148C)
 
@@ -25,30 +29,75 @@ fun PantallaLecturas(
     onVolver: () -> Unit
 ) {
     val repo = remember { LecturaRepoImpl(PersistenciaDatos(StorageDriver())) }
+    val clienteRepo: ClienteRepositorio = remember { ClienteRepoImpl(PersistenciaDatos(StorageDriver())) }
+    val medidorRepo: MedidorRepositorio = remember { MedidorRepoImpl(PersistenciaDatos(StorageDriver())) }
 
     // --------- FILTRO O CONSULTA DE LECTURAS -------------
-    var filtroMedidor by remember { mutableStateOf("") }
+    var filtroRutCliente by remember { mutableStateOf("") }
+    var filtroMedidor by remember { mutableStateOf("") } // ID (código) del medidor
     var filtroAnio    by remember { mutableStateOf("") }
     var filtroMes     by remember { mutableStateOf("") }
     var lecturas      by remember { mutableStateOf(listOf<LecturaConsumo>()) }
     var mostrandoFormulario by remember { mutableStateOf(false) }
 
+    var errorRutFiltro by remember { mutableStateOf<String?>(null) }
+    var errorMedidorFiltro by remember { mutableStateOf<String?>(null) }
+
     // recarga cada vez que cambian los filtros
-    LaunchedEffect(filtroMedidor, filtroAnio, filtroMes) {
+    LaunchedEffect(filtroRutCliente, filtroMedidor, filtroAnio, filtroMes) {
+        val rut = filtroRutCliente.trim()
+        val id  = filtroMedidor.trim()
         val a = filtroAnio.toIntOrNull() ?: 0
         val m = filtroMes.toIntOrNull() ?: 0
-        lecturas = if (filtroMedidor.isNotBlank() && a > 0 && m in 1..12) {
-            repo.listarPorMedidorMes(filtroMedidor, a, m)
+
+        // Requisitos: RUT válido y existente + ID de medidor existente
+        if (rut.isBlank()) {
+            errorRutFiltro = null
+            errorMedidorFiltro = null
+            lecturas = emptyList()
+            return@LaunchedEffect
+        }
+
+        val cliente = clienteRepo.obtenerPorRut(rut)
+        if (cliente == null) {
+            errorRutFiltro = "El RUT ingresado no corresponde a un cliente registrado."
+            errorMedidorFiltro = null
+            lecturas = emptyList()
+            return@LaunchedEffect
+        } else {
+            errorRutFiltro = null
+        }
+
+        if (id.isBlank()) {
+            errorMedidorFiltro = "Debe ingresar el ID (código) de un medidor."
+            lecturas = emptyList()
+            return@LaunchedEffect
+        }
+
+        val medidor = medidorRepo.obtenerPorCodigo(id)
+        if (medidor == null) {
+            errorMedidorFiltro = "El ID de medidor ingresado no existe."
+            lecturas = emptyList()
+            return@LaunchedEffect
+        } else {
+            errorMedidorFiltro = null
+        }
+
+        lecturas = if (a > 0 && m in 1..12) {
+            repo.listarPorMedidorMes(id, a, m)
         } else {
             emptyList()
         }
     }
 
     // --------- ESTADOS DEL FORMULARIO
-    var formIdMedidor by remember { mutableStateOf("") }
+    var formRutCliente by remember { mutableStateOf("") }
+    var formIdMedidor by remember { mutableStateOf("") }   // ID (código) del medidor
     var formAnio      by remember { mutableStateOf("") }
     var formMes       by remember { mutableStateOf("") }
     var formKwh       by remember { mutableStateOf("") }
+    var errorFormRut  by remember { mutableStateOf<String?>(null) }
+    var errorFormMedidor by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
@@ -69,12 +118,35 @@ fun PantallaLecturas(
 
         // Campos de filtrado
         OutlinedTextField(
+            value = filtroRutCliente,
+            onValueChange = { filtroRutCliente = it },
+            label = { Text("RUT Cliente") },
+            singleLine = true,
+            isError = errorRutFiltro != null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+        )
+        if (errorRutFiltro != null) {
+            Text(errorRutFiltro!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
+        }
+
+        OutlinedTextField(
             value = filtroMedidor,
             onValueChange = { filtroMedidor = it },
-            label = { Text("ID (Codigo) del Medidor") },
+            label = { Text("ID (Código) del Medidor") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+            isError = errorMedidorFiltro != null,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
         )
+        if (errorMedidorFiltro != null) {
+            Text(errorMedidorFiltro!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
+        }
+
         Row {
             OutlinedTextField(
                 value = filtroAnio,
@@ -97,10 +169,13 @@ fun PantallaLecturas(
 
         Button(onClick = {
             // Al abrir el diálogo inicializa sus campos desde los filtros
+            formRutCliente = filtroRutCliente
             formIdMedidor = filtroMedidor
             formAnio      = filtroAnio
             formMes       = filtroMes
             formKwh       = ""
+            errorFormRut = null
+            errorFormMedidor = null
             mostrandoFormulario = true
         }) {
             Text("Registrar nueva lectura")
@@ -148,11 +223,28 @@ fun PantallaLecturas(
             text = {
                 Column {
                     OutlinedTextField(
-                        value = formIdMedidor,
-                        onValueChange = { formIdMedidor = it },
-                        label = { Text("ID Medidor") },
-                        singleLine = true
+                        value = formRutCliente,
+                        onValueChange = { formRutCliente = it; errorFormRut = null },
+                        label = { Text("RUT Cliente") },
+                        singleLine = true,
+                        isError = errorFormRut != null
                     )
+                    if (errorFormRut != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(errorFormRut!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = formIdMedidor,
+                        onValueChange = { formIdMedidor = it; errorFormMedidor = null },
+                        label = { Text("ID (Código) del Medidor") },
+                        singleLine = true,
+                        isError = errorFormMedidor != null
+                    )
+                    if (errorFormMedidor != null) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(errorFormMedidor!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
                     Spacer(Modifier.height(8.dp))
                     OutlinedTextField(
                         value = formAnio,
@@ -178,11 +270,37 @@ fun PantallaLecturas(
             },
             confirmButton = {
                 Button(onClick = {
+                    val rut = formRutCliente.trim()
+                    val id  = formIdMedidor.trim()
                     val a = formAnio.toIntOrNull()
                     val m = formMes.toIntOrNull()
                     val k = formKwh.toDoubleOrNull()
-                    if (formIdMedidor.isNotBlank() && a != null && m != null && k != null) {
-                        repo.registrar(LecturaConsumo(formIdMedidor, a, m, k))
+
+                    // Validaciones: RUT y Medidor deben existir
+                    if (rut.isBlank()) {
+                        errorFormRut = "Debe ingresar un RUT."
+                        return@Button
+                    }
+                    if (clienteRepo.obtenerPorRut(rut) == null) {
+                        errorFormRut = "El RUT ingresado no corresponde a un cliente registrado."
+                        return@Button
+                    } else {
+                        errorFormRut = null
+                    }
+
+                    if (id.isBlank()) {
+                        errorFormMedidor = "Debe ingresar el ID (código) del medidor."
+                        return@Button
+                    }
+                    if (medidorRepo.obtenerPorCodigo(id) == null) {
+                        errorFormMedidor = "El ID de medidor ingresado no existe."
+                        return@Button
+                    } else {
+                        errorFormMedidor = null
+                    }
+
+                    if (a != null && m != null && k != null) {
+                        repo.registrar(LecturaConsumo(id, a, m, k))
                         mostrandoFormulario = false
                     }
                 }) {
