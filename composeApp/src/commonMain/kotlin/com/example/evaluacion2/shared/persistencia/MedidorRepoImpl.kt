@@ -56,9 +56,8 @@ class MedidorRepoImpl (
                     if (partes.size >= 6 && partes[1] == rut) {
                         reconstruir(partes)
                     } else null
+                }
             }
-
-    }
 
     override fun obtenerPorCodigo(codigo: String): Medidor? =
         persistenciaDatos.read("medidor_$codigo")
@@ -66,10 +65,10 @@ class MedidorRepoImpl (
             ?.split(" | ")
             ?.map(String::trim)
             ?.let { partes ->
-                if (partes.size >5)
+                if (partes.size > 5)
                     reconstruir(partes)
                 else null
-    }
+            }
 
     override fun eliminar(codigo: String): Boolean =
         persistenciaDatos.delete("medidor_$codigo")
@@ -89,7 +88,7 @@ class MedidorRepoImpl (
                 direccionSuministro = partes[2],
                 activo = partes[3].toBoolean(),
                 potenciaMaxKw = partes.getOrNull(5).orEmpty().toDoubleOrNull() ?: 0.0,
-                factorPotencia = partes.getOrNull(5).orEmpty().toDoubleOrNull() ?: 0.0
+                factorPotencia = partes.getOrNull(6).orEmpty().toDoubleOrNull() ?: 1.0
             )
             else -> Medidor (
                 codigo = partes[0],
