@@ -1,5 +1,6 @@
 package com.example.evaluacion2.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,11 +9,16 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.evaluacion2.shared.dominio.LecturaConsumo
 import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
 import com.example.evaluacion2.shared.persistencia.LecturaRepoImpl
+
+private val CGEBlue      = Color(0xFF4A148C)
 
 @Composable
 fun PantallaLecturas(
@@ -20,7 +26,7 @@ fun PantallaLecturas(
 ) {
     val repo = remember { LecturaRepoImpl(PersistenciaDatos(StorageDriver())) }
 
-    // ─── ESTADOS DE FILTRO / CONSULTA ──────────────────────────────────────────────
+    // --------- FILTRO O CONSULTA DE LECTURAS -------------
     var filtroMedidor by remember { mutableStateOf("") }
     var filtroAnio    by remember { mutableStateOf("") }
     var filtroMes     by remember { mutableStateOf("") }
@@ -38,25 +44,34 @@ fun PantallaLecturas(
         }
     }
 
-    // ─── ESTADOS DEL FORMULARIO (DIÁLOGO) ──────────────────────────────────────────
+    // --------- ESTADOS DEL FORMULARIO
     var formIdMedidor by remember { mutableStateOf("") }
     var formAnio      by remember { mutableStateOf("") }
     var formMes       by remember { mutableStateOf("") }
     var formKwh       by remember { mutableStateOf("") }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CGEBlue)  // color de la “barra”
+            .padding(vertical = 8.dp, horizontal = 100.dp)            // espacio dentro
+    ){
+        Text("Registrar / Ver lecturas", fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold)
+
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(20.dp)
     ) {
-        Text("Registrar / Ver lecturas", style = MaterialTheme.typography.headlineSmall)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(52.dp))
 
-        // ——— Campos de FILTRO —————————————————————————————————————
+        // Campos de filtrado
         OutlinedTextField(
             value = filtroMedidor,
             onValueChange = { filtroMedidor = it },
-            label = { Text("ID Medidor") },
+            label = { Text("ID (Codigo) del Medidor") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
@@ -64,7 +79,7 @@ fun PantallaLecturas(
             OutlinedTextField(
                 value = filtroAnio,
                 onValueChange = { filtroAnio = it },
-                label = { Text("Año") },
+                label = { Text("Año (Ejemplo 2025)") },
                 singleLine = true,
                 modifier = Modifier.weight(1f)
             )

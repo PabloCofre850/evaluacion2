@@ -5,7 +5,7 @@ package com.example.evaluacion2.shared.persistencia
 
 class PersistenciaDatos(private val driver: StorageDriver) {
 
-    // Guarda un valor binario asociado a una clave. Devuelve true si la operación fue exitosa.
+    // Guarda un valor binario asociado a una clave. Devuelve true si la operacion fue exitosa.
 
     fun save(key: String, bytes: ByteArray): Boolean {
         return try {
@@ -37,7 +37,7 @@ class PersistenciaDatos(private val driver: StorageDriver) {
         }
     }
 
-    //Elimina el registro asociado a una clave.Devuelve true si se eliminó correctamente.
+    //Elimina el registro asociado a una clave. Devuelve true si se elimino correctamente.
 
     fun delete(key: String): Boolean {
         return try {

@@ -19,6 +19,11 @@ import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.example.evaluacion2.shared.persistencia.MedidorRepositorio
+import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
+
+private val CGEBlue      = Color(0xFF4A148C)
 
 @Composable
 fun PantallaMedidores(
@@ -39,22 +44,31 @@ fun PantallaMedidores(
         medidores = repo.listarPorCliente(rutCliente)
         seleccionado = null
     }
+    // Texto de gestion de medidores
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(CGEBlue)  // color de la “barra”
+            .padding(vertical = 8.dp, horizontal = 100.dp)            // espacio dentro
+    ){
+        Text("Gestion de Medidores", fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold)
 
+    }
+
+    // Campos de busqueda y botones
     Column(
         Modifier
             .fillMaxSize()
             .safeContentPadding()
             .padding(20.dp)
     ) {
-        Text("Gestion de Medidores", style = MaterialTheme.typography.headlineSmall)
-
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(52.dp))
 
         // —— CAMPO RUT + BOTÓN CARGAR ——                                 <=
         OutlinedTextField(
             value = rutCliente,
             onValueChange = { rutCliente = it },
-            label = { Text("RUT Cliente") },
+            label = { Text("RUT Cliente (Ej: 12.345.678-9)") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
