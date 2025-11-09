@@ -1,65 +1,48 @@
 package com.example.evaluacion2.ui.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.evaluacion2.shared.dominio.LecturaConsumo
 import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
 import com.example.evaluacion2.shared.persistencia.StorageDriver
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.example.evaluacion2.shared.persistencia.LecturaRepoImpl
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.border
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
 
 @Composable
 fun PantallaLecturas(
     onVolver: () -> Unit
 ) {
-
     val repo = remember { LecturaRepoImpl(PersistenciaDatos(StorageDriver())) }
 
-    var idMedidor by remember { mutableStateOf("") }
-
-    var anio by remember { mutableStateOf("") }
-
-    var mes by remember { mutableStateOf("") }
-
-    var kwh by remember { mutableStateOf("") }
-
+    // ─── ESTADOS DE FILTRO / CONSULTA ──────────────────────────────────────────────
+    var filtroMedidor by remember { mutableStateOf("") }
+    var filtroAnio    by remember { mutableStateOf("") }
+    var filtroMes     by remember { mutableStateOf("") }
+    var lecturas      by remember { mutableStateOf(listOf<LecturaConsumo>()) }
     var mostrandoFormulario by remember { mutableStateOf(false) }
 
-    var lecturas by remember { mutableStateOf(listOf<LecturaConsumo>()) }
-
-    LaunchedEffect(idMedidor, anio, mes, mostrandoFormulario) {
-        val a = anio.toIntOrNull() ?: 0
-
-        val m = mes.toIntOrNull() ?: 0
-
-        if (idMedidor.isNotBlank() && a > 0 && m in 1..12) {
-            lecturas = repo.listarPorMedidorMes(idMedidor, a, m)
+    // recarga cada vez que cambian los filtros
+    LaunchedEffect(filtroMedidor, filtroAnio, filtroMes) {
+        val a = filtroAnio.toIntOrNull() ?: 0
+        val m = filtroMes.toIntOrNull() ?: 0
+        lecturas = if (filtroMedidor.isNotBlank() && a > 0 && m in 1..12) {
+            repo.listarPorMedidorMes(filtroMedidor, a, m)
         } else {
-            lecturas = emptyList()
+            emptyList()
         }
     }
+
+    // ─── ESTADOS DEL FORMULARIO (DIÁLOGO) ──────────────────────────────────────────
+    var formIdMedidor by remember { mutableStateOf("") }
+    var formAnio      by remember { mutableStateOf("") }
+    var formMes       by remember { mutableStateOf("") }
+    var formKwh       by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -67,47 +50,50 @@ fun PantallaLecturas(
             .padding(20.dp)
     ) {
         Text("Registrar / Ver lecturas", style = MaterialTheme.typography.headlineSmall)
-
         Spacer(Modifier.height(16.dp))
 
+        // ——— Campos de FILTRO —————————————————————————————————————
         OutlinedTextField(
-            value = idMedidor,
-            onValueChange = { idMedidor = it },
+            value = filtroMedidor,
+            onValueChange = { filtroMedidor = it },
             label = { Text("ID Medidor") },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth(0.5f)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
         )
-
-        Spacer(Modifier.height(8.dp))
-
         Row {
             OutlinedTextField(
-                value = anio,
-                onValueChange = { anio = it },
+                value = filtroAnio,
+                onValueChange = { filtroAnio = it },
                 label = { Text("Año") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(1f)
+                modifier = Modifier.weight(1f)
             )
-
-            Spacer(Modifier.height(8.dp))
-
+            Spacer(Modifier.width(8.dp))
             OutlinedTextField(
-                value = mes,
-                onValueChange = { mes = it },
+                value = filtroMes,
+                onValueChange = { filtroMes = it },
                 label = { Text("Mes") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(1f)
+                modifier = Modifier.weight(1f)
             )
         }
 
         Spacer(Modifier.height(16.dp))
 
-        Button(onClick = { mostrandoFormulario = true }) {
+        Button(onClick = {
+            // Al abrir el diálogo inicializa sus campos desde los filtros
+            formIdMedidor = filtroMedidor
+            formAnio      = filtroAnio
+            formMes       = filtroMes
+            formKwh       = ""
+            mostrandoFormulario = true
+        }) {
             Text("Registrar nueva lectura")
         }
 
         Spacer(Modifier.height(16.dp))
 
+        // ——— Tabla de lecturas —————————————————————————————————————
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,33 +103,29 @@ fun PantallaLecturas(
         ) {
             item {
                 Row(Modifier.fillMaxWidth()) {
-                    Text("ID Medidor", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                    Text("Año", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                    Text("Mes", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                    Text("kWh", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                    Text("ID Medidor", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                    Text("Año",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                    Text("Mes",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                    Text("kWh",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
                 }
                 Divider()
             }
-            items(lecturas) {
-                l ->
+            items(lecturas) { l ->
                 Row(Modifier.fillMaxWidth()) {
-                    Text(l.idMedidor, modifier = Modifier.weight(1f))
-                    Text(l.anio.toString(), modifier = Modifier.weight(1f))
-                    Text(l.mes.toString(), modifier = Modifier.weight(1f))
-                    Text(l.kwhLeidos.toString(), modifier = Modifier.weight(1f))
+                    Text(l.idMedidor,       Modifier.weight(1f))
+                    Text(l.anio.toString(), Modifier.weight(1f))
+                    Text(l.mes.toString(),  Modifier.weight(1f))
+                    Text(l.kwhLeidos.toString(), Modifier.weight(1f))
                 }
                 Divider()
-
             }
         }
 
         Spacer(Modifier.height(16.dp))
-
-        Button(onClick = { onVolver() }) {
-            Text("Volver al menu")
-        }
+        Button(onClick = onVolver) { Text("Volver al menú") }
     }
 
+    // ─── DIÁLOGO: Nuevo registro de lectura ───────────────────────────────────────
     if (mostrandoFormulario) {
         AlertDialog(
             onDismissRequest = { mostrandoFormulario = false },
@@ -151,48 +133,41 @@ fun PantallaLecturas(
             text = {
                 Column {
                     OutlinedTextField(
-                        value = idMedidor,
-                        onValueChange = { idMedidor = it },
+                        value = formIdMedidor,
+                        onValueChange = { formIdMedidor = it },
                         label = { Text("ID Medidor") },
                         singleLine = true
                     )
-
                     Spacer(Modifier.height(8.dp))
-
                     OutlinedTextField(
-                        value = anio,
-                        onValueChange = { anio = it },
-                        label = { Text("Año")},
+                        value = formAnio,
+                        onValueChange = { formAnio = it },
+                        label = { Text("Año") },
                         singleLine = true
                     )
-
                     Spacer(Modifier.height(8.dp))
-
                     OutlinedTextField(
-                        value = mes,
-                        onValueChange = { mes = it },
+                        value = formMes,
+                        onValueChange = { formMes = it },
                         label = { Text("Mes") },
                         singleLine = true
                     )
-
                     Spacer(Modifier.height(8.dp))
-
                     OutlinedTextField(
-                        value = kwh,
-                        onValueChange = { kwh = it },
-                        label = { Text("Kwh Leidos") },
+                        value = formKwh,
+                        onValueChange = { formKwh = it },
+                        label = { Text("kWh Leídos") },
                         singleLine = true
                     )
                 }
             },
             confirmButton = {
                 Button(onClick = {
-                    val a = anio.toIntOrNull()
-                    val m = mes.toIntOrNull()
-                    val k = kwh.toDoubleOrNull()
-
-                    if (idMedidor.isNotBlank() && a != null && m != null && k != null) {
-                        repo.registrar(LecturaConsumo(idMedidor, a, m, k))
+                    val a = formAnio.toIntOrNull()
+                    val m = formMes.toIntOrNull()
+                    val k = formKwh.toDoubleOrNull()
+                    if (formIdMedidor.isNotBlank() && a != null && m != null && k != null) {
+                        repo.registrar(LecturaConsumo(formIdMedidor, a, m, k))
                         mostrandoFormulario = false
                     }
                 }) {
@@ -206,11 +181,5 @@ fun PantallaLecturas(
             }
         )
     }
-
 }
 
-@org.jetbrains.compose.ui.tooling.preview.Preview
-@Composable
-private fun PantallaLecturasPreview() {
-    PantallaLecturas(onVolver = {})
-}
