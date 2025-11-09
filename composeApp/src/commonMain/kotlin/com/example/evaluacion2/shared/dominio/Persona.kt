@@ -1,7 +1,7 @@
 package com.example.evaluacion2.shared.dominio
 
-class Persona (
-    var run: String,
-    var nombre: String,
-    var email: String
+open class Persona (
+    open var run: String,
+    open var nombre: String,
+    open var email: String
 ){}

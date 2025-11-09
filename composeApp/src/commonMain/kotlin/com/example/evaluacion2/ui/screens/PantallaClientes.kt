@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -29,6 +30,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.evaluacion2.shared.persistencia.ClienteRepoImpl
+import com.example.evaluacion2.shared.persistencia.ClienteRepositorio
+import com.example.evaluacion2.shared.persistencia.PersistenciaDatos
+import com.example.evaluacion2.shared.persistencia.StorageDriver
+import com.example.evaluacion2.shared.dominio.Cliente as ClienteDomain
+import com.example.evaluacion2.shared.dominio.EstadoCliente
 
 private data class ClienteUI(
     val rut: String,
@@ -37,6 +44,25 @@ private data class ClienteUI(
     val direccion: String,
     val estado: String
 )
+
+private fun ClienteDomain.toUI(): ClienteUI =
+    ClienteUI(
+        rut = rut,
+        nombre = nombre,
+        email = email,
+        direccion = direccionFacturacion,
+        estado = estado.name
+    )
+
+private fun ClienteUI.toDomain(defaultEstado: EstadoCliente = EstadoCliente.ACTIVO): ClienteDomain =
+    ClienteDomain(
+        run = rut,
+        nombre = nombre,
+        email = email,
+        direccionFacturacion = direccion,
+        estado = runCatching { EstadoCliente.valueOf(estado) }.getOrElse { defaultEstado },
+        tipo = "RESIDENCIAL"
+    )
 
 private sealed class FormMode {
     data object None : FormMode()
@@ -48,13 +74,26 @@ private sealed class FormMode {
 fun PantallaClientes(
     onVolver: () -> Unit
 ){
-    // Datos de ejemplo (luego se reemplazan por ClienteRepositorio)
-    val clientes = remember {
-        mutableStateListOf(
-            ClienteUI("11.111.111-1", "Juan Pérez", "juan@example.com", "Av. Siempre Viva 123", "ACTIVO"),
-            ClienteUI("22.222.222-2", "María Gómez", "maria@example.com", "Calle Falsa 456", "INACTIVO"),
-            ClienteUI("33.333.333-3", "Luis Soto", "luis@example.com", "Pasaje Central 789", "ACTIVO")
-        )
+    // Repo en memoria (puedes inyectarlo desde arriba si lo prefieres)
+    val repo: ClienteRepositorio = remember {
+        ClienteRepoImpl(PersistenciaDatos(StorageDriver()))
+    }
+
+    // Estado UI basado en repositorio
+    val clientes = remember { mutableStateListOf<ClienteUI>() }
+
+    // Cargar datos iniciales desde el repositorio
+    LaunchedEffect(Unit) {
+        val data = repo.listar()
+        clientes.clear()
+        clientes.addAll(data.map { it.toUI() })
+    }
+
+    // Función para refrescar lista desde el repositorio
+    fun recargarClientes() {
+        val data = repo.listar()
+        clientes.clear()
+        clientes.addAll(data.map { it.toUI() })
     }
 
     var filtroRut by remember { mutableStateOf("") }  // Guarda rut observable
@@ -169,7 +208,10 @@ fun PantallaClientes(
                     Button(
                         onClick = {
                             seleccionado?.let { sel ->
-                                clientes.removeAll { it.rut == sel.rut }
+                                // Eliminar en repositorio y refrescar
+                                if (repo.eliminar(sel.rut)) {
+                                    recargarClientes()
+                                }
                                 seleccionado = null
                                 if (modo is FormMode.Edit) modo = FormMode.None
                             }
@@ -239,33 +281,53 @@ fun PantallaClientes(
                             Button(onClick = {
                                 when (m) {
                                     is FormMode.New -> {
-                                        // Agregar nuevo
-                                        clientes.add(
-                                            ClienteUI(
-                                                rut = rutCampo,
+                                        // Guardar en repositorio con rut/nombre/email
+                                        repo.crear(
+                                            ClienteDomain(
+                                                run = rutCampo,
                                                 nombre = nombreCampo,
                                                 email = emailCampo,
-                                                direccion = direccionCampo,
-                                                estado = "ACTIVO"
+                                                direccionFacturacion = direccionCampo,
+                                                estado = EstadoCliente.ACTIVO,
+                                                tipo = "RESIDENCIAL"
                                             )
                                         )
+                                        recargarClientes()
                                         seleccionado = clientes.find { it.rut == rutCampo }
                                         modo = FormMode.None
                                     }
                                     is FormMode.Edit -> {
-                                        // Actualizar existente (busca por rut original)
-                                        val idx = clientes.indexOfFirst { it.rut == m.originalRut }
-                                        if (idx >= 0) {
-                                            val anterior = clientes[idx]
-                                            val actualizado = anterior.copy(
-                                                rut = rutCampo,
-                                                nombre = nombreCampo,
-                                                email = emailCampo,
-                                                direccion = direccionCampo
+                                        // Actualizar existente; si cambia el RUT, recrea y elimina el anterior
+                                        val estadoActual = runCatching {
+                                            EstadoCliente.valueOf(seleccionado?.estado ?: "ACTIVO")
+                                        }.getOrElse { EstadoCliente.ACTIVO }
+
+                                        if (m.originalRut != rutCampo) {
+                                            repo.crear(
+                                                ClienteDomain(
+                                                    run = rutCampo,
+                                                    nombre = nombreCampo,
+                                                    email = emailCampo,
+                                                    direccionFacturacion = direccionCampo,
+                                                    estado = estadoActual,
+                                                    tipo = "RESIDENCIAL"
+                                                )
                                             )
-                                            clientes[idx] = actualizado
-                                            seleccionado = actualizado
+                                            repo.eliminar(m.originalRut)
+                                        } else {
+                                            repo.actualizar(
+                                                ClienteDomain(
+                                                    run = rutCampo,
+                                                    nombre = nombreCampo,
+                                                    email = emailCampo,
+                                                    direccionFacturacion = direccionCampo,
+                                                    estado = estadoActual,
+                                                    tipo = "RESIDENCIAL"
+                                                )
+                                            )
                                         }
+                                        recargarClientes()
+                                        seleccionado = clientes.find { it.rut == rutCampo }
                                         modo = FormMode.None
                                     }
                                     else -> Unit
