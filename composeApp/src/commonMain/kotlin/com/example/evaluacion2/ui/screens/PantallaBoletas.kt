@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.example.evaluacion2.shared.dominio.*
 import com.example.evaluacion2.shared.persistencia.*
 import com.example.evaluacion2.shared.servicios.PdfService
+import com.example.evaluacion2.shared.servicios.PdfGenerator
 import kotlinx.coroutines.launch
 
 private val CGEBlue      = Color(0xFF4A148C)
@@ -120,59 +121,61 @@ fun PantallaBoletas(
 
             Spacer(Modifier.height(8.dp))
 
-            // --- Botones de acción ---
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-
-                Button(
-                    onClick = {
-                        if (lista.isNotEmpty()) {
-                            try {
-                                val pdfService = PdfService()
-                                val bytes = pdfService.generarBoletasPdf(lista, emptyMap())
-                                val texto = bytes.decodeToString()
-
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(
-                                        "Boletas generadas:\n${texto.take(100)}..."
-                                    )
-                                }
-                            } catch (e: Exception) {
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar("Error al generar texto: ${e.message}")
-                                }
-                            }
-                        } else {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar("No hay boletas para exportar.")
-                            }
-                        }
-                    },
-                    modifier = Modifier.width(180.dp)
-                ) {
-                    Text("Generar PDF")
-                }
-
-                Button(onClick = onVolver, modifier = Modifier.width(180.dp)) {
-                    Text("Volver al menú")
-                }
+            // --- Botón de acción ---
+            Button(onClick = onVolver, modifier = Modifier.width(180.dp)) {
+                Text("Volver al menú")
             }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(16.dp))
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start
             ) {
-                lista.forEach {
-                    Text("• ${it.idCliente} (${it.mes}/${it.anio}) - ${it.detalle.nombre}: $${it.detalle.total}")
+                lista.forEach { boleta ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            "• ${boleta.idCliente} (${boleta.mes}/${boleta.anio}) - ${boleta.detalle.nombre}: $${boleta.detalle.total}",
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    try {
+                                        val pdfGenerator = PdfGenerator()
+                                        val bytes = pdfGenerator.generarPdf(listOf(boleta), emptyMap())
+
+                                        // Guardar y abrir el archivo PDF automáticamente
+                                        val fileName = "boleta_${boleta.idCliente}_${boleta.mes}_${boleta.anio}.pdf"
+                                        val rutaArchivo = pdfGenerator.guardarYAbrirPdf(bytes, fileName)
+
+                                        snackbarHostState.showSnackbar(
+                                            "PDF generado y abierto: $rutaArchivo"
+                                        )
+                                    } catch (e: Exception) {
+                                        snackbarHostState.showSnackbar("Error: ${e.message}")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.width(100.dp).height(32.dp),
+                            contentPadding = PaddingValues(4.dp)
+                        ) {
+                            Text("PDF", fontSize = 12.sp)
+                        }
+                    }
                 }
             }
         }
     }
 }
+
 
 // -----------------------
 // Componentes reutilizables
