@@ -11,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.evaluacion2.shared.dominio.Medidor
 import com.example.evaluacion2.shared.dominio.MedidorMonofasico
 import com.example.evaluacion2.shared.dominio.MedidorTrifasico

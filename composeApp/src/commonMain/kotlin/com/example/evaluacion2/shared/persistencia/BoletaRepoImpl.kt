@@ -1,68 +1,66 @@
 package com.example.evaluacion2.shared.persistencia
 
-import com.example.evaluacion2.shared.dominio.*
+import com.example.evaluacion2.shared.dominio.Boleta
 
 class BoletaRepoImpl(private val persistencia: PersistenciaDatos) : BoletaRepositorio {
 
     override fun guardar(b: Boleta): Boleta {
-        // Guarda la boleta en persistencia como bytes
-        persistencia.save(
-            key = "boleta_${b.idCliente}_${b.anio}_${b.mes}",
-            bytes = b.toBytes()
-        )
+        val key = "boleta_${b.idCliente}_${b.anio}_${b.mes}"
+        val csv = listOf(
+            b.idCliente,
+            b.anio.toString(),
+            b.mes.toString(),
+            b.kwhTotal.toString(),
+            b.detalle.nombre,
+            b.detalle.precioKwh.toString(),
+            b.detalle.consumo.toString(),
+            b.detalle.total.toString(),
+            b.estado.name
+        ).joinToString(";")
+
+        persistencia.save(key, csv.encodeToByteArray())
         return b
     }
 
     override fun obtener(rut: String, anio: Int, mes: Int): Boleta? {
-        // Lee los bytes almacenados
-        val bytes = persistencia.read("boleta_${rut}_${anio}_${mes}")
-        // Si hay datos, los convierte a Boleta
-        return bytes?.toBoleta()
+        val key = "boleta_${rut}_${anio}_${mes}"
+        val data = persistencia.read(key)?.decodeToString() ?: return null
+        val partes = data.split(";")
+
+        return Boleta(
+            idCliente = partes[0],
+            anio = partes[1].toInt(),
+            mes = partes[2].toInt(),
+            kwhTotal = partes[3].toDouble(),
+            detalle = com.example.evaluacion2.shared.dominio.TarifaDetalle(
+                nombre = partes[4],
+                precioKwh = partes[5].toDouble(),
+                consumo = partes[6].toDouble(),
+                total = partes[7].toDouble()
+            ),
+            estado = com.example.evaluacion2.shared.dominio.EstadoBoleta.valueOf(partes[8])
+        )
     }
 
     override fun listarPorCliente(rut: String): List<Boleta> {
-        val keys = persistencia.list("boleta_${rut}_")
-        // Lee todas las claves y convierte los bytes a boletas
-        return keys.mapNotNull {
-            persistencia.read(it)?.toBoleta()
+        val keys = persistencia.list("boleta_")
+        return keys.mapNotNull { key ->
+            val data = persistencia.read(key)?.decodeToString() ?: return@mapNotNull null
+            val partes = data.split(";")
+            val boleta = Boleta(
+                idCliente = partes[0],
+                anio = partes[1].toInt(),
+                mes = partes[2].toInt(),
+                kwhTotal = partes[3].toDouble(),
+                detalle = com.example.evaluacion2.shared.dominio.TarifaDetalle(
+                    nombre = partes[4],
+                    precioKwh = partes[5].toDouble(),
+                    consumo = partes[6].toDouble(),
+                    total = partes[7].toDouble()
+                ),
+                estado = com.example.evaluacion2.shared.dominio.EstadoBoleta.valueOf(partes[8])
+            )
+            if (boleta.idCliente == rut) boleta else null
         }
     }
-}
-
-/* ------------------------------------------------------------
-   FUNCIONES DE EXTENSION: para convertir entre texto y bytes
-   ------------------------------------------------------------ */
-
-// Convierte una Boleta a bytes (para guardar)
-private fun Boleta.toBytes(): ByteArray {
-    val datos = """
-        RUT: $idCliente
-        Año: $anio
-        Mes: $mes
-        kWh: $kwhTotal
-        Estado: $estado
-    """.trimIndent()
-    return datos.encodeToByteArray()
-}
-
-// Convierte bytes en una instancia de Boleta (al leer)
-private fun ByteArray.toBoleta(): Boleta {
-    val texto = decodeToString()
-    val lineas = texto.lines().associate {
-        val partes = it.split(":").map { p -> p.trim() }
-        if (partes.size == 2) partes[0] to partes[1] else "" to ""
-    }
-
-    return Boleta(
-        idCliente = lineas["RUT"] ?: "",
-        anio = lineas["Año"]?.toIntOrNull() ?: 0,
-        mes = lineas["Mes"]?.toIntOrNull() ?: 0,
-        kwhTotal = lineas["kWh"]?.toDoubleOrNull() ?: 0.0,
-        detalle = TarifaDetalle(" N/A ", 0.0, 0.0, 0.0), // se deja vacío
-        estado = try {
-            EstadoBoleta.valueOf(lineas["Estado"] ?: "EMITIDA")
-        } catch (_: Exception) {
-            EstadoBoleta.EMITIDA
-        }
-    )
 }

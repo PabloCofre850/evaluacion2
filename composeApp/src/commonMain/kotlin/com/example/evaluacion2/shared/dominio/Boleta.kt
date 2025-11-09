@@ -1,16 +1,8 @@
 package com.example.evaluacion2.shared.dominio
 
-// Importamos esto para poder convertir la clase a JSON facilmente
 import kotlin.math.pow
 
-import kotlinx.serialization.Serializable
-
-
-
-// La clase Boleta representa una boleta de consumo electrico emitida a un cliente.
-// Es una "data class" porque solo guarda informacion (no tiene logica).
-
-@Serializable // Necesario para guardar y/o leer
+// Representa una boleta de consumo eléctrico emitida a un cliente.
 data class Boleta(
     val idCliente: String,
     val anio: Int,
@@ -20,13 +12,9 @@ data class Boleta(
     val estado: EstadoBoleta
 ): ExportablePDF {
 
-    // Implementacion de la funcion para exportar la boleta como tabla PDF
+    // Convierte la boleta en una tabla para PDF (texto estructurado)
     override fun toPdfTable(): PdfTable {
-
         val headers = listOf("Campo", "Valor")
-
-        // Funcion auxiliar para redondear y convertir Double a String con seguridad
-        // ya que no nos dejo utiizar String.format o .format
 
         fun Double.toStringSafe(decimals: Int = 2): String {
             val factor = 10.0.pow(decimals)
@@ -47,8 +35,5 @@ data class Boleta(
         )
 
         return PdfTable(headers, rows)
-        }
-
-
-
     }
+}
