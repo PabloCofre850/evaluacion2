@@ -10,7 +10,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import com.example.evaluacion2.shared.persistencia.ClienteRepoImpl
 import com.example.evaluacion2.shared.persistencia.ClienteRepositorio
@@ -52,6 +54,7 @@ private sealed class FormMode {
     data class Edit(val originalRut: String) : FormMode()
 }
 
+private val CGEBlue      = Color(0xFF4A148C)
 @Composable
 fun PantallaClientes(
     onVolver: () -> Unit
@@ -87,6 +90,16 @@ fun PantallaClientes(
 
     Box(
         modifier = Modifier
+            .fillMaxWidth()
+            .background(CGEBlue)  // color de la “barra”
+            .padding(vertical = 8.dp, horizontal = 100.dp)            // espacio dentro
+    ){
+        Text("Registrar Clientes", fontSize = 40.sp, color = Color.White, fontWeight = FontWeight.Bold)
+
+    }
+
+    Box(
+        modifier = Modifier
             .fillMaxSize()
             .padding(40.dp)
     ) {
@@ -103,7 +116,6 @@ fun PantallaClientes(
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Top,
             ) {
-                Text("Clientes registrados", style = MaterialTheme.typography.headlineSmall)
                 Spacer(Modifier.height(60.dp))
                 Text("Filtro Rut", style = MaterialTheme.typography.bodyLarge)
 
