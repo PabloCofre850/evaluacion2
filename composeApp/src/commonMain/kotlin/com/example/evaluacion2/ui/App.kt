@@ -47,7 +47,6 @@ private val CGETypography = Typography(
     bodyLarge     = TextStyle(fontSize = 16.sp))
 
 @Composable
-
 fun App() {
 
     val nav = remember { NavigationController() } // var clase navegacion entre pantallas
@@ -72,7 +71,6 @@ fun App() {
                 Screen.Clientes -> PantallaClientes(onVolver = nav::backToMenu)
 
                 Screen.Medidores -> PantallaMedidores(
-
                     repo     = medidorRepo,
                     onVolver = nav::backToMenu
                 )
