@@ -30,7 +30,7 @@ private val CGEBlue = Color(0xFF4A148C)
 
 @Composable
 fun PantallaMedidores(
-    repo: MedidorRepositorio,
+    repo: MedidorRepositorio = MedidorRepoImpl(PersistenciaDatos(StorageDriver())),
     onVolver: () -> Unit,
     clienteRepo: ClienteRepositorio = ClienteRepoImpl(PersistenciaDatos(StorageDriver()))
 ) {
@@ -139,6 +139,8 @@ fun PantallaMedidores(
                         Text("Dirección", fontWeight = FontWeight.Bold)
                         Text("Activo", fontWeight = FontWeight.Bold)
                         Text("Tipo", fontWeight = FontWeight.Bold)
+                        Text("Pot. Máx (kW)", fontWeight = FontWeight.Bold)
+                        Text("Factor Potencia", fontWeight = FontWeight.Bold)
                     }
                     Divider()
                 }
@@ -165,6 +167,14 @@ fun PantallaMedidores(
                         Text(medidor.direccionSuministro)
                         Text(if (medidor.activo) "Sí" else "No")
                         Text(medidor.tipo())
+                        val potencia = when (medidor) {
+                            is MedidorMonofasico -> medidor.potenciaMaxKw
+                            is MedidorTrifasico -> medidor.potenciaMaxKw
+                            else -> 0.0
+                        }
+                        val fpText = if (medidor is MedidorTrifasico) medidor.factorPotencia.toString() else "-"
+                        Text("$potencia")
+                        Text(fpText)
                     }
                     Divider()
                 }
@@ -214,7 +224,6 @@ private fun FormularioMedidor(
     existeCliente: (String) -> Boolean
 ) {
     var rut by remember { mutableStateOf("") }
-    var codigo by remember { mutableStateOf("") }
     var direccion by remember { mutableStateOf("") }
     var tipoMono by remember { mutableStateOf(true) }
     var activo by remember { mutableStateOf<Boolean?>(null) }
@@ -257,12 +266,6 @@ private fun FormularioMedidor(
                 )
             }
 
-            OutlinedTextField(
-                value = codigo,
-                onValueChange = { codigo = it },
-                label = { Text("Código del medidor") },
-                modifier = Modifier.fillMaxWidth()
-            )
 
             OutlinedTextField(
                 value = direccion,
@@ -325,17 +328,20 @@ private fun FormularioMedidor(
                             return@Button
                         }
 
-                        if (codigo.isNotBlank() && direccion.isNotBlank() && activo != null) {
+                        if (direccion.isNotBlank() && activo != null) {
+                            val codigoGenerado = (if (tipoMono) "MONO-" else "TRI-") +
+                                    kotlin.random.Random.nextInt(100000, 999999)
+
                             val medidor = if (tipoMono) {
                                 MedidorMonofasico(
-                                    codigo = codigo,
+                                    codigo = codigoGenerado,
                                     direccionSuministro = direccion,
                                     activo = activo!!,
                                     potenciaMaxKw = potenciaMaxKw.toDouble()
                                 )
                             } else {
                                 MedidorTrifasico(
-                                    codigo = codigo,
+                                    codigo = codigoGenerado,
                                     direccionSuministro = direccion,
                                     activo = activo!!,
                                     potenciaMaxKw = potenciaMaxKw.toDouble(),
@@ -345,10 +351,10 @@ private fun FormularioMedidor(
                             onGuardar(medidor, rut)
                         }
                     },
-                    enabled = codigo.isNotBlank() &&
-                            direccion.isNotBlank() &&
+                    enabled = direccion.isNotBlank() &&
                             activo != null &&
-                            potenciaMaxKw.toDoubleOrNull() != null
+                            potenciaMaxKw.toDoubleOrNull() != null &&
+                            (tipoMono || factorPotencia.toDoubleOrNull() != null)
                 ) {
                     Text("Guardar")
                 }
