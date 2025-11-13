@@ -16,7 +16,9 @@ class BoletaService(
             ?: throw Exception("Cliente no encontrado")
 
         val consumo = calcularKwhClienteMes(rutCliente, anio, mes)
+
         val tarifa = tarifas.tarifaPara(cliente)
+
         val detalle = tarifa.calcular(consumo)
 
         val boleta = Boleta(
@@ -34,13 +36,14 @@ class BoletaService(
 
     /** Calcula el consumo mensual total (kWh) del cliente usando las lecturas registradas. */
     fun calcularKwhClienteMes(rutCliente: String, anio: Int, mes: Int): Double {
+
         // Obtener todas las lecturas del cliente en ese mes
         val lecturasCliente = lecturas.listarPorMedidorMes(rutCliente, anio, mes)
 
         // Si no hay lecturas, consumo = 0
         if (lecturasCliente.isEmpty()) return 0.0
 
-        // Sumar los kWh leídos de todas las lecturas
+        // Sumar los kWh leidos de todas las lecturas
         return lecturasCliente.sumOf { it.kwhLeidos }
     }
 
@@ -51,6 +54,7 @@ class BoletaService(
         mes: Int,
         pdf: PdfService
     ): ByteArray {
+
         val boletasCliente = boletas.listarPorCliente(rutCliente)
             .filter { it.anio == anio && it.mes == mes }
 

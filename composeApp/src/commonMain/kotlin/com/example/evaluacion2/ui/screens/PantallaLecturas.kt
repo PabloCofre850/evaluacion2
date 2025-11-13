@@ -40,6 +40,7 @@ fun PantallaLecturas(
     var lecturas      by remember { mutableStateOf(listOf<LecturaConsumo>()) }
     var mostrandoFormulario by remember { mutableStateOf(false) }
 
+    // -------Errores en los filtrados -------
     var errorRutFiltro by remember { mutableStateOf<String?>(null) }
     var errorMedidorFiltro by remember { mutableStateOf<String?>(null) }
 
@@ -50,7 +51,7 @@ fun PantallaLecturas(
         val a = filtroAnio.toIntOrNull() ?: 0
         val m = filtroMes.toIntOrNull() ?: 0
 
-        // Requisitos: RUT válido y existente + ID de medidor existente
+        // Requisitos: RUT valido y existente + ID de medidor existente
         if (rut.isBlank()) {
             errorRutFiltro = null
             errorMedidorFiltro = null
@@ -59,6 +60,7 @@ fun PantallaLecturas(
         }
 
         val cliente = clienteRepo.obtenerPorRut(rut)
+
         if (cliente == null) {
             errorRutFiltro = "El RUT ingresado no corresponde a un cliente registrado."
             errorMedidorFiltro = null
@@ -69,7 +71,7 @@ fun PantallaLecturas(
         }
 
         if (id.isBlank()) {
-            errorMedidorFiltro = "Debe ingresar el ID (código) de un medidor."
+            errorMedidorFiltro = "Debe ingresar el ID (codigo) de un medidor."
             lecturas = emptyList()
             return@LaunchedEffect
         }
@@ -90,10 +92,10 @@ fun PantallaLecturas(
         }
     }
 
-    // --------- ESTADOS DEL FORMULARIO
+    // --------- ESTADOS DEL FORMULARIO -----------
     var formRutCliente by remember { mutableStateOf("") }
-    var formIdMedidor by remember { mutableStateOf("") }   // ID (código) del medidor
-    var formAnio      by remember { mutableStateOf("") }
+    var formIdMedidor by remember { mutableStateOf("") }   // ID (codigo) del medidor
+    var formAnio      by remember { mutableStateOf("") }   // Año
     var formMes       by remember { mutableStateOf("") }
     var formKwh       by remember { mutableStateOf("") }
     var errorFormRut  by remember { mutableStateOf<String?>(null) }
@@ -135,7 +137,7 @@ fun PantallaLecturas(
         OutlinedTextField(
             value = filtroMedidor,
             onValueChange = { filtroMedidor = it },
-            label = { Text("ID (Código) del Medidor") },
+            label = { Text("ID (Codigo) del Medidor") },
             singleLine = true,
             isError = errorMedidorFiltro != null,
             modifier = Modifier
@@ -159,7 +161,7 @@ fun PantallaLecturas(
             OutlinedTextField(
                 value = filtroMes,
                 onValueChange = { filtroMes = it },
-                label = { Text("Mes") },
+                label = { Text("Mes (1-12)") },
                 singleLine = true,
                 modifier = Modifier.weight(1f)
             )
@@ -195,7 +197,7 @@ fun PantallaLecturas(
                 Row(Modifier.fillMaxWidth()) {
                     Text("ID Medidor", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
                     Text("Año",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
-                    Text("Mes",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
+                    Text("Mes (1-12)",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
                     Text("kWh",        Modifier.weight(1f), style = MaterialTheme.typography.labelLarge)
                 }
                 Divider()
@@ -237,7 +239,7 @@ fun PantallaLecturas(
                     OutlinedTextField(
                         value = formIdMedidor,
                         onValueChange = { formIdMedidor = it; errorFormMedidor = null },
-                        label = { Text("ID (Código) del Medidor") },
+                        label = { Text("ID (Codigo) del Medidor") },
                         singleLine = true,
                         isError = errorFormMedidor != null
                     )
@@ -256,7 +258,7 @@ fun PantallaLecturas(
                     OutlinedTextField(
                         value = formMes,
                         onValueChange = { formMes = it },
-                        label = { Text("Mes") },
+                        label = { Text("Mes (1-12)") },
                         singleLine = true
                     )
                     Spacer(Modifier.height(8.dp))
@@ -276,7 +278,7 @@ fun PantallaLecturas(
                     val m = formMes.toIntOrNull()
                     val k = formKwh.toDoubleOrNull()
 
-                    // Validaciones: RUT y Medidor deben existir
+                    // Validaciones: RUT y Medidor deben estar registrados
                     if (rut.isBlank()) {
                         errorFormRut = "Debe ingresar un RUT."
                         return@Button
@@ -289,11 +291,11 @@ fun PantallaLecturas(
                     }
 
                     if (id.isBlank()) {
-                        errorFormMedidor = "Debe ingresar el ID (código) del medidor."
+                        errorFormMedidor = "Debe ingresar el ID (codigo) del medidor."
                         return@Button
                     }
                     if (medidorRepo.obtenerPorCodigo(id) == null) {
-                        errorFormMedidor = "El ID de medidor ingresado no existe."
+                        errorFormMedidor = "El ID del medidor ingresado no existe."
                         return@Button
                     } else {
                         errorFormMedidor = null

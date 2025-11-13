@@ -67,7 +67,7 @@ fun PantallaMedidores(
             .padding(vertical = 8.dp, horizontal = 100.dp)
     ) {
         Text(
-            "Gestión de Medidores",
+            "Gestion de Medidores",
             fontSize = 40.sp,
             color = Color.White,
             fontWeight = FontWeight.Bold
@@ -82,7 +82,7 @@ fun PantallaMedidores(
     ) {
         Spacer(Modifier.height(52.dp))
 
-        // 🔹 Barra de búsqueda de medidores existentes (se mantiene fuera del formulario)
+        // Barra de busqueda de medidores existentes
         if (!mostrandoFormulario) {
             OutlinedTextField(
                 value = rutCliente,
@@ -92,7 +92,9 @@ fun PantallaMedidores(
                 modifier = Modifier.fillMaxWidth(),
                 isError = errorRutBusqueda != null
             )
+
             Spacer(Modifier.height(8.dp))
+
             if (errorRutBusqueda != null) {
                 Text(
                     errorRutBusqueda!!,
@@ -103,7 +105,7 @@ fun PantallaMedidores(
             }
         }
 
-        // 🔹 Si está en modo formulario, se muestra solo el formulario
+        // Si esta en modo formulario, se muestra solo el formulario
         if (mostrandoFormulario) {
             FormularioMedidor(
                 onGuardar = { nuevo, rutIngresado ->
@@ -115,11 +117,11 @@ fun PantallaMedidores(
                 existeCliente = { rut -> clienteRepo.obtenerPorRut(rut) != null }
             )
         } else {
-            // 🔹 Resto del contenido normal
+            // Resto del contenido normal
             OutlinedTextField(
                 value = filtroValor,
                 onValueChange = { filtroValor = it },
-                label = { Text("Filtrar por código") },
+                label = { Text("Filtrar por codigo") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -135,7 +137,7 @@ fun PantallaMedidores(
             ) {
                 item {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("Código", fontWeight = FontWeight.Bold)
+                        Text("Codigo", fontWeight = FontWeight.Bold)
                         Text("Dirección", fontWeight = FontWeight.Bold)
                         Text("Activo", fontWeight = FontWeight.Bold)
                         Text("Tipo", fontWeight = FontWeight.Bold)
@@ -208,15 +210,16 @@ fun PantallaMedidores(
 
             Spacer(Modifier.height(24.dp))
             Button(onClick = onVolver) {
-                Text("Volver al menú")
+                Text("Volver al menu")
             }
         }
     }
 }
 
-// -------------------
-// Formulario de creación
-// -------------------
+// ----------------------------
+// Formulario de creacion
+// ---------------------------
+
 @Composable
 private fun FormularioMedidor(
     onGuardar: (Medidor, String) -> Unit,
@@ -245,7 +248,7 @@ private fun FormularioMedidor(
         ) {
             Text("Nuevo Medidor", style = MaterialTheme.typography.headlineSmall)
 
-            // ✅ Campo obligatorio de RUT y debe existir
+            // Campo obligatorio de RUT y debe existir
             OutlinedTextField(
                 value = rut,
                 onValueChange = {
@@ -270,7 +273,7 @@ private fun FormularioMedidor(
             OutlinedTextField(
                 value = direccion,
                 onValueChange = { direccion = it },
-                label = { Text("Dirección suministro") },
+                label = { Text("Direccion suministro") },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -291,15 +294,15 @@ private fun FormularioMedidor(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 RadioButton(selected = tipoMono == true, onClick = { tipoMono = true })
-                Text("Monofásico")
+                Text("Monofasico")
                 RadioButton(selected = tipoMono == false, onClick = { tipoMono = false })
-                Text("Trifásico")
+                Text("Trifasico")
             }
 
             OutlinedTextField(
                 value = potenciaMaxKw,
                 onValueChange = { potenciaMaxKw = it },
-                label = { Text("Potencia Máx (kW)") },
+                label = { Text("Potencia Max (kW)") },
                 modifier = Modifier.fillMaxWidth()
             )
 

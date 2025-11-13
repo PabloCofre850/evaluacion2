@@ -5,6 +5,7 @@ import com.example.evaluacion2.shared.dominio.*
 class TarifaService {
 
     fun tarifaPara(cliente: Cliente): Tarifa {
+
         // Convertimos el tipo del cliente a minusculas para comparar
         val tipo = cliente.tipo.lowercase()
 

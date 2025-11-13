@@ -9,12 +9,14 @@ class LecturaRepoImpl(
     override fun registrar(l: LecturaConsumo): LecturaConsumo {
 
         val key = "lectura_${l.idMedidor}_${l.anio}_${l.mes}"
+
         // Creamos la llave para llamar a la lectura de cada medidor
 
         val text = listOf(l.idMedidor, l.anio, l.mes, l.kwhLeidos)
             .joinToString(";")
         persistenciaDatos.save(key, text.encodeToByteArray())
         return l
+
         // Guardamos las lecturas en Persistencia de Datos
 
     }
@@ -43,8 +45,9 @@ class LecturaRepoImpl(
         val allKeys = persistenciaDatos.list("lectura_${idMedidor}_")
 
         val lastKey = allKeys.maxByOrNull {
-            key -> key.substringAfterLast("_")
-            .toIntOrNull() ?: 0
+            key -> key
+                .substringAfterLast("_")
+                .toIntOrNull() ?: 0
         } ?: return null
 
         return persistenciaDatos.read(lastKey)

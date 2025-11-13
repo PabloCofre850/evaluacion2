@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable // Permite convertir esta clase a JSON (necesario para Boleta)
 
 data class TarifaResidencial(
+
     override val nombre: String = "Residencial",
     val cargoFijo: Double = 5000.0,   // monto fijo que se cobra siempre
     val precioKwh: Double = 120.0,    // costo por kWh consumido
@@ -18,6 +19,7 @@ data class TarifaResidencial(
 
 
     override fun calcular(kwh: Double): TarifaDetalle {
+
         val subtotal = cargoFijo + (kwh * precioKwh)
         val total = subtotal * (1 + iva)
 

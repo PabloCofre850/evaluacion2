@@ -218,7 +218,7 @@ fun PantallaClientes(
                         var emailCampo by remember(m) { mutableStateOf(inicial?.email ?: "") }
                         var direccionCampo by remember(m) { mutableStateOf(inicial?.direccion ?: "") }
 
-                        Text("Ingrese datos del cliente", style = MaterialTheme.typography.titleMedium)
+                        Text("Ingrese los datos del cliente", style = MaterialTheme.typography.titleMedium)
                         Spacer(Modifier.height(12.dp))
 
                         OutlinedTextField(rutCampo, { rutCampo = it }, label = { Text("Rut") }, singleLine = true, modifier = Modifier.fillMaxWidth())

@@ -5,6 +5,7 @@ import com.example.evaluacion2.shared.dominio.Boleta
 class BoletaRepoImpl(private val persistencia: PersistenciaDatos) : BoletaRepositorio {
 
     override fun guardar(b: Boleta): Boleta {
+
         val key = "boleta_${b.idCliente}_${b.anio}_${b.mes}"
         val csv = listOf(
             b.idCliente,

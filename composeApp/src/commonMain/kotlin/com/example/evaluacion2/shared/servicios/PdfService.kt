@@ -12,6 +12,7 @@ class PdfService {
 
             boletas.forEach { b ->
                 val cliente = clientes[b.idCliente]
+                appendLine("------------------------------------------------------")
                 appendLine("Cliente: ${cliente?.toString() ?: "Desconocido"}")
                 appendLine("RUT: ${b.idCliente}")
                 appendLine("Año: ${b.anio}")
@@ -22,7 +23,7 @@ class PdfService {
                 appendLine("Consumo: ${b.detalle.consumo.toStringSafe()}")
                 appendLine("Total: ${b.detalle.total.toStringSafe()}")
                 appendLine("Estado: ${b.estado.name}")
-                appendLine("--------------------------------------")
+                appendLine("-----------------------------------------------------")
                 appendLine()
             }
         }

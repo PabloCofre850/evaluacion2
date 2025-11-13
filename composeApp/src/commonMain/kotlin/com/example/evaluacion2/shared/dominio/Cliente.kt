@@ -7,10 +7,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Cliente(
     override var run: String,                 // Se usa como RUT del titular
+
     override var nombre: String,              // Nombre de la persona titular
+
     override var email: String,               // Email de la persona titular
+
     val direccionFacturacion: String,         // Direccion
+
     val estado: EstadoCliente,                // Estado de la tarifa
+
     val tipo: String                          // Tipo de tarifa
 ) : Persona(
     run = run,

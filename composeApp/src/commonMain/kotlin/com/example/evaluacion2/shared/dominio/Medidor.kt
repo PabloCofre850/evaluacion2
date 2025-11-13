@@ -7,6 +7,6 @@ open class Medidor (
 ){
 
     // Metodo para obtener el tipo de medidor
-    open fun tipo(): String = "Genérico"
+    open fun tipo(): String = "Generico"
 
 }

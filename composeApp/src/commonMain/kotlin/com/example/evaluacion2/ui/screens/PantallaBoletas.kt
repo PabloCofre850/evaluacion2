@@ -42,6 +42,7 @@ fun PantallaBoletas(
 
     // Con Scaffold creamos la estructura general de esta pantalla
     Scaffold(
+        containerColor = Color.White,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         modifier = Modifier.fillMaxSize()
     ) { padding ->
@@ -83,10 +84,12 @@ fun PantallaBoletas(
 
             Spacer(Modifier.height(16.dp))
 
-            Button(
+            Button( // Boton para guardar la boleta
                 onClick = {
                     if (rut.isNotBlank() && mes.isNotBlank() && anio.isNotBlank() && consumo.isNotBlank()) {
-                        val tarifa = if (tipoTarifa == "Residencial") TarifaResidencial() else TarifaComercial()
+                        val tarifa = if (tipoTarifa == "Residencial") TarifaResidencial()
+                        else TarifaComercial()
+
                         val detalle = tarifa.calcular(consumo.toDouble())
 
                         val boleta = Boleta(
@@ -121,9 +124,9 @@ fun PantallaBoletas(
 
             Spacer(Modifier.height(8.dp))
 
-            // --- Botón de acción ---
+            // Boton para volver al menu
             Button(onClick = onVolver, modifier = Modifier.width(180.dp)) {
-                Text("Volver al menú")
+                Text("Volver al menu")
             }
 
                 Spacer(Modifier.height(16.dp))
@@ -152,7 +155,7 @@ fun PantallaBoletas(
                                         val pdfGenerator = PdfGenerator()
                                         val bytes = pdfGenerator.generarPdf(listOf(boleta), emptyMap())
 
-                                        // Guardar y abrir el archivo PDF automáticamente
+                                        // Guardar y abrir el archivo PDF automaticamente
                                         val fileName = "boleta_${boleta.idCliente}_${boleta.mes}_${boleta.anio}.pdf"
                                         val rutaArchivo = pdfGenerator.guardarYAbrirPdf(bytes, fileName)
 
@@ -182,7 +185,8 @@ fun PantallaBoletas(
 // -----------------------
 
 @Composable
-private fun Campo(label: String, value: String, onChange: (String) -> Unit, tipo: KeyboardType = KeyboardType.Text) {
+private fun Campo(label: String, value: String, onChange: (String)
+-> Unit, tipo: KeyboardType = KeyboardType.Text) {
     OutlinedTextField(
         value = value,
         onValueChange = onChange,

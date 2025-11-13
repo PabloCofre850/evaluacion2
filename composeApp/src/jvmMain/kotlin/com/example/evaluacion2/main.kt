@@ -18,7 +18,7 @@ fun main() = application {
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "Pantalla Principal",
+        title = "Aplicacion CGE",
         state = state,
     ) {
         App()
